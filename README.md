@@ -1,5 +1,8 @@
 # Melanopy — a melanopic axis for colormaps
 
+[![CI](https://github.com/remrama/melanopy/actions/workflows/ci.yml/badge.svg)](https://github.com/remrama/melanopy/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/remrama/melanopy/graph/badge.svg)](https://codecov.io/gh/remrama/melanopy)
+
 Scientific colormaps are usually judged on two axes: **perceptual uniformity** and
 **colour-vision-deficiency (CVD) safety**. Melanopy adds a third: how much
 short-wavelength, **melanopic** (melatonin-suppressing) light a map emits — makes it
