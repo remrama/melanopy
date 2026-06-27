@@ -10,6 +10,10 @@ only the chroma vector (warm -> near-neutral crossover ~0.55 -> cool). Melanopic
 the emergent, monotonic dial.
 
 Named anchors: SODIUM (0.0), EQUILUX (M/P=1 crossover, ~0.55), XENON (1.0).
+
+Beyond the single-alpha ramp: diel_sweep walks the whole axis along one ramp (melanopic ratio
+rises ~linearly with the data value -- a teaching map), and diel_diverging is a warm<->cool
+diverging map for signed data.
 """
 
 import numpy as np
@@ -79,6 +83,15 @@ _WA = _ab(_WARM)
 _CA = _ab(_COOL)
 
 
+def _render(Li, ai, bi):
+    """Clamp each (L, a, b) into sRGB (preserving L and hue) -> (n, 3) sRGB array."""
+    return np.array([_clamp(Li[k], ai[k], bi[k]) for k in range(len(Li))])
+
+
+def _cmap(rgb, as_cmap, name, default):
+    return ListedColormap(rgb, name=name or default) if as_cmap else rgb
+
+
 def diel(alpha, n=256, as_cmap=False, name=None):
     """Return (n,3) sRGB array (default) or a matplotlib ListedColormap for a given alpha."""
     ab = (1 - alpha) * _WA + alpha * _CA
@@ -86,14 +99,62 @@ def diel(alpha, n=256, as_cmap=False, name=None):
     Li = np.interp(t, _POS, _L)
     ai = np.interp(t, _POS, ab[:, 0])
     bi = np.interp(t, _POS, ab[:, 1])
-    rgb = np.array([_clamp(Li[k], ai[k], bi[k]) for k in range(n)])
-    return ListedColormap(rgb, name=name or f"diel_{alpha:.2f}") if as_cmap else rgb
+    return _cmap(_render(Li, ai, bi), as_cmap, name, f"diel_{alpha:.2f}")
 
 
 circadian_cmap = diel  # alias
+
+
+def _sweep_ramp(pos):
+    """Warm->cool sequential ramp at fractional positions `pos` in [0, 1] (shared monotone L)."""
+    ai = (1 - pos) * np.interp(pos, _POS, _WA[:, 0]) + pos * np.interp(pos, _POS, _CA[:, 0])
+    bi = (1 - pos) * np.interp(pos, _POS, _WA[:, 1]) + pos * np.interp(pos, _POS, _CA[:, 1])
+    return _render(np.interp(pos, _POS, _L), ai, bi)
+
+
+def diel_sweep(n=256, as_cmap=False, name=None):
+    """Full-axis sequential map sweeping protective (Sodium, warm) -> alerting (Xenon, cool), with
+    the melanopic ratio rising ~linearly along the ramp -- the "data axis *is* the melanopic axis"
+    teaching map. The shared monotone OKLab lightness keeps it ordered and CVD-recoverable; the
+    positions are calibrated against the rater so M/P is linear in the data value. This is the one
+    melanopic-aware generator (via a local import); `diel` itself stays pure OKLab geometry.
+    """
+    from .rater import melanopic_ratio  # local import keeps the module pure OKLab geometry
+
+    u = np.linspace(0, 1, 1024)
+    m = np.maximum.accumulate(melanopic_ratio(_sweep_ramp(u)))  # force monotone for inversion
+    pos = np.interp(np.linspace(m[0], m[-1], n), m, u)  # positions giving M/P linear in t
+    return _cmap(_sweep_ramp(pos), as_cmap, name, "diel_sweep")
+
+
+# diverging map for signed data: warm Sodium arm <- light neutral centre -> cool Xenon arm
+_DIV_LC, _DIV_LE, _DIV_C, _DIV_HW, _DIV_HX = 0.92, 0.42, 0.16, 50.0, 252.0
+
+
+def diel_diverging(n=256, as_cmap=False, name=None):
+    """Diverging map for signed data: warm Sodium (protective, M/P<1) <- light neutral centre
+    (M/P=1) -> cool Xenon (alerting, M/P>1). Each arm has monotone lightness, but -- like most
+    diverging maps -- the arms are told apart across zero by *hue*, so it is NOT
+    CVD-order-recoverable; use the sequential maps where CVD-safety matters.
+    """
+    t = np.linspace(-1, 1, n)
+    s = np.abs(t)
+    h = np.radians(np.where(t < 0, _DIV_HW, _DIV_HX))
+    a = s * _DIV_C * np.cos(h)
+    b = s * _DIV_C * np.sin(h)
+    return _cmap(_render(_DIV_LC + s * (_DIV_LE - _DIV_LC), a, b), as_cmap, name, "diel_diverging")
+
 
 SODIUM = diel(0.0, as_cmap=True, name="sodium")  # protective endpoint
 EQUILUX = diel(0.55, as_cmap=True, name="equilux")  # M/P=1 crossover (alpha 0.55 -> M/P 0.999)
 XENON = diel(1.0, as_cmap=True, name="xenon")  # alerting endpoint
 
-__all__ = ["diel", "circadian_cmap", "SODIUM", "EQUILUX", "XENON"]
+__all__ = [
+    "diel",
+    "circadian_cmap",
+    "diel_sweep",
+    "diel_diverging",
+    "SODIUM",
+    "EQUILUX",
+    "XENON",
+]
