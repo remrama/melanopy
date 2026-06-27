@@ -2,12 +2,13 @@
 
 import matplotlib as mpl
 
-from ..generator import EMBER, EQUINOX, GLACIER
+from ..generator import EQUILUX, SODIUM, XENON, diel_diverging, diel_sweep
 
 
 def register():
-    """Register 'ember', 'glacier', 'equinox' as named matplotlib colormaps."""
-    for cm in (EMBER, GLACIER, EQUINOX):
+    """Register sodium/xenon/equilux + diel_sweep/diel_diverging as named matplotlib colormaps."""
+    cmaps = (SODIUM, XENON, EQUILUX, diel_sweep(as_cmap=True), diel_diverging(as_cmap=True))
+    for cm in cmaps:
         try:
             mpl.colormaps.register(cm)
         except (ValueError, AttributeError):

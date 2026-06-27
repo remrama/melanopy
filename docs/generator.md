@@ -19,18 +19,18 @@ rgb  = mp.diel(0.3)                 # or the raw (256, 3) sRGB array
 
 | anchor | `alpha` | M/P | character |
 |---|---|---|---|
-| **Ember** | 0.00 | 0.29 | warm, protective, circadian-pure |
-| **Equinox** | 0.55 | ≈ 1.00 | circadian-neutral (M/P = 1 crossover) |
-| **Glacier** | 1.00 | 1.73 | cool, alerting |
+| **Sodium** | 0.00 | 0.29 | warm, protective, circadian-pure |
+| **Equilux** | 0.55 | ≈ 1.00 | circadian-neutral (M/P = 1 crossover) |
+| **Xenon** | 1.00 | 1.73 | cool, alerting |
 
-The three anchors are exported as ready-made colormaps (`mp.EMBER`, `mp.EQUINOX`,
-`mp.GLACIER`) and registered with matplotlib by name:
+The three anchors are exported as ready-made colormaps (`mp.SODIUM`, `mp.EQUILUX`,
+`mp.XENON`) and registered with matplotlib by name:
 
 ```python
 mp.register()
-plt.imshow(Z, cmap="ember")     # protective
-plt.imshow(Z, cmap="equinox")   # neutral
-plt.imshow(Z, cmap="glacier")   # alerting
+plt.imshow(Z, cmap="sodium")     # protective
+plt.imshow(Z, cmap="equilux")   # neutral
+plt.imshow(Z, cmap="xenon")   # alerting
 ```
 
 ## Why uniformity comes for free
@@ -52,8 +52,45 @@ both properties actually hold is *verified numerically*, not asserted — see
 [Validation](validation.md).
 
 !!! note "A fundamental warm/cool asymmetry"
-    Ember is far more circadian-pure than Glacier (σ 0.07 vs 0.42). This is a property of the
+    Sodium is far more circadian-pure than Xenon (σ 0.07 vs 0.42). This is a property of the
     display gamut, not a tuning miss: short-wavelength primaries are intrinsically low-luminance,
     so *a light, saturated blue does not exist* — light cool colours must desaturate toward white
     (M/P → 1). A perfectly pure **protective** map is achievable; a perfectly pure **alerting**
     one is not, under a shared lightness profile.
+
+## Beyond one dial — full-axis and diverging maps
+
+`diel(alpha)` fixes the melanopic temperature and renders it as a sequential ramp. Two derived
+maps cover the other common needs.
+
+### `diel_sweep` — the whole axis in one map
+
+Where `diel` holds the temperature fixed, **`diel_sweep`** lets it rise *along* the ramp: low data
+is protective (warm, Sodium-like), high data is alerting (cool, Xenon-like), so the **melanopic
+ratio increases ~linearly with the data value** (≈ 0.38 → 1.29). The data axis literally *is* the
+melanopic axis, which makes it a natural teaching map; lightness still rises monotonically, so it
+stays ordered and CVD-recoverable.
+
+```python
+rgb = mp.diel_sweep()              # (256, 3) sRGB
+plt.imshow(Z, cmap="diel_sweep")  # after mp.register()
+```
+
+It is the one melanopic-aware generator: positions are calibrated against the rater to linearize
+M/P, whereas the core `diel` stays pure OKLab geometry.
+
+### `diel_diverging` — signed data
+
+For signed data (z-scored EEG, ERP differences, anomalies) **`diel_diverging`** places a light,
+**circadian-neutral centre** (M/P = 1) between a warm protective arm (Sodium, M/P < 1) and a cool
+alerting arm (Xenon, M/P > 1):
+
+```python
+rgb = mp.diel_diverging()             # warm below the centre, cool above
+plt.imshow(Z, cmap="diel_diverging")  # pair with a symmetric / centered norm
+```
+
+!!! warning "Diverging maps and CVD"
+    Like most diverging maps, the two arms are told apart across zero by **hue**, which colour
+    blindness compresses — so `diel_diverging` is **not** CVD-order-recoverable. When CVD-safety
+    matters, reach for the sequential maps (`diel`, `diel_sweep`).

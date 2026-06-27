@@ -11,26 +11,26 @@ Display white = 1.0; representative panel.
 
 | colormap | M/P | σ (purity) | regime |
 |---|---|---|---|
-| **ember** (melanopy) | 0.29 | 0.07 | protective, pure |
+| **sodium** (melanopy) | 0.29 | 0.07 | protective, pure |
 | copper | 0.49 | 0.03 | protective, pure |
 | inferno | 0.50 | 0.45 | mid, smeared |
 | cividis | 0.72 | 0.44 | mid, smeared |
 | viridis | 0.83 | 0.56 | mid, smeared |
-| **equinox** (melanopy) | 1.00 | 0.16 | neutral |
+| **equilux** (melanopy) | 1.00 | 0.16 | neutral |
 | gray | 1.00 | 0.00 | neutral |
 | Blues | 1.33 | 0.40 | alerting |
-| **glacier** (melanopy) | 1.73 | 0.42 | alerting, ~PU/CVD |
+| **xenon** (melanopy) | 1.73 | 0.42 | alerting, ~PU/CVD |
 | cool | 2.06 | 0.58 | alerting, not PU |
 
 Three findings fall out:
 
-- **Protective + pure already exists.** `copper` (0.49, σ 0.03) and **Ember** (0.29) sit low
+- **Protective + pure already exists.** `copper` (0.49, σ 0.03) and **Sodium** (0.29) sit low
   and flat — a warm, circadian-pure sequential map has been hiding in matplotlib all along.
 - **Popular PU maps are *smeared*.** viridis / magma / inferno / cividis / plasma sit mid-axis
   but dump high-melanopic blue at their dark (low-data) end — none is circadian-pure (σ ≈ 0.4–1.0).
 - **The genuine gap is a pure *alerting* map.** Existing cool maps (`cool`, `winter`, `Blues`)
   reach the alerting end but are not perceptually uniform or are single-hue. That is the slot
-  the generator's **Glacier** endpoint is built to fill (see [The Diel family](generator.md)).
+  the generator's **Xenon** endpoint is built to fill (see [The Diel family](generator.md)).
 
 ## Robust to the display panel
 

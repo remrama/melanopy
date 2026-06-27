@@ -76,8 +76,8 @@ def _title(ax, text, size=11, pad=4):
 
 
 def _colors_for(label):
-    """sRGB ramp for a leaderboard label ('ember (melanopy)' -> Diel endpoint, else builtin)."""
-    named = {"ember": mp.EMBER, "equinox": mp.EQUINOX, "glacier": mp.GLACIER}
+    """sRGB ramp for a leaderboard label ('sodium (melanopy)' -> Diel endpoint, else builtin)."""
+    named = {"sodium": mp.SODIUM, "equilux": mp.EQUILUX, "xenon": mp.XENON}
     key = label.replace(" (melanopy)", "")
     cm = named[key] if "(melanopy)" in label else plt.get_cmap(key)
     return cm(T)[:, :3]
@@ -185,10 +185,10 @@ def fig_generator(path):
 
     # D: alerting endpoint under CVD
     gsd = gs[3].subgridspec(4, 1, hspace=0.45)
-    glacier = mp.diel(1.0)
+    xenon = mp.diel(1.0)
     for k, (lab, kind) in enumerate(CVD):
         ax = fig.add_subplot(gsd[k])
-        _strip(ax, _cvd(glacier, kind), lab)
+        _strip(ax, _cvd(xenon, kind), lab)
         if k == 0:
             _title(
                 ax,
@@ -349,7 +349,7 @@ def _pairwise_min(colors):
 
 
 def fig_nightwatch(path):
-    ember = mp.diel(0.0)
+    sodium = mp.diel(0.0)
     cat = np.array([to_rgb(c) for c in mp.CATEGORICAL_DARK])
     names = mp.CATEGORICAL_NAMES
 
@@ -366,15 +366,15 @@ def fig_nightwatch(path):
         bottom=0.05,
     )
 
-    # A: Ember sequential under normal + CVD
+    # A: Sodium sequential under normal + CVD
     gsa = gs[0].subgridspec(4, 1, hspace=0.45)
     for k, (lab, kind) in enumerate(CVD):
         ax = fig.add_subplot(gsa[k])
-        _strip(ax, _cvd(ember, kind), lab)
+        _strip(ax, _cvd(sodium, kind), lab)
         if k == 0:
             _title(
                 ax,
-                "Ember (protective sequential) — order preserved under dichromacy "
+                "Sodium (protective sequential) — order preserved under dichromacy "
                 "(lightness does the work)",
             )
 
