@@ -2,12 +2,12 @@
 
 import matplotlib as mpl
 
-from ..generator import EMBER, EQUINOX, GLACIER
+from ..generator import EQUILUX, SODIUM, XENON
 
 
 def register():
-    """Register 'ember', 'glacier', 'equinox' as named matplotlib colormaps."""
-    for cm in (EMBER, GLACIER, EQUINOX):
+    """Register 'sodium', 'xenon', 'equilux' as named matplotlib colormaps."""
+    for cm in (SODIUM, XENON, EQUILUX):
         try:
             mpl.colormaps.register(cm)
         except (ValueError, AttributeError):

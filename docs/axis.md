@@ -40,9 +40,9 @@ screen area.**
 This split is why Melanopy treats *sequential* fills as the place the melanopic axis earns its
 keep, and keeps categorical colour a separate, fixed concern.
 
-![Ember under simulated dichromacy, and the CVD-safe categorical set with its separation under colour blindness](assets/figures/nightwatch_colormaps.png){ loading=lazy }
+![Sodium under simulated dichromacy, and the CVD-safe categorical set with its separation under colour blindness](assets/figures/nightwatch_colormaps.png){ loading=lazy }
 
-Ember stays order-preserving under simulated dichromacy (top — lightness does the work); the
+Sodium stays order-preserving under simulated dichromacy (top — lightness does the work); the
 single CVD-safe categorical set stays well-separated under colour blindness (middle and bottom),
 so one palette serves every circadian regime.
 

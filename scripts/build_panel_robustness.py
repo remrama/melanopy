@@ -30,7 +30,7 @@ PANEL_NAMES = list(PANELS)  # representative first (dict insertion order)
 def _samples():
     out = {
         f"{name} (melanopy)": cm(_T)[:, :3]
-        for name, cm in [("ember", mp.EMBER), ("equinox", mp.EQUINOX), ("glacier", mp.GLACIER)]
+        for name, cm in [("sodium", mp.SODIUM), ("equilux", mp.EQUILUX), ("xenon", mp.XENON)]
     }
     out.update({name: plt.get_cmap(name)(_T)[:, :3] for name in BUILTINS})
     return out

@@ -67,15 +67,15 @@ The dependency flow is a one-way pipeline — understand this before editing:
    morphs only the chroma vector (warm `_WARM` → cool `_COOL`). `_clamp()` reduces chroma to
    stay in sRGB gamut while preserving L and hue. The melanopic ratio is therefore an
    *emergent, monotonic* property of alpha, not something the generator computes — that
-   monotonicity is asserted in the tests via the rater. Anchors: `EMBER` (0.0, protective),
-   `EQUINOX` (0.55, ~neutral M/P≈1), `GLACIER` (1.0, alerting).
+   monotonicity is asserted in the tests via the rater. Anchors: `SODIUM` (0.0, protective),
+   `EQUILUX` (0.55, ~neutral M/P≈1), `XENON` (1.0, alerting).
 
 `categorical.py` is separate from the continuous axis: a fixed CVD-safe categorical palette
 (dark/light variants), justified by an area-weighted argument that small marks emit
 negligible light, so one palette serves every circadian regime.
 
 **Adapters** (`src/melanopy/adapters/`) keep third-party integration out of core:
-`mpl.register()` registers ember/glacier/equinox as named matplotlib colormaps;
+`mpl.register()` registers sodium/xenon/equilux as named matplotlib colormaps;
 `pyqtgraph.py` (optional, `qt` extra) exports to a pyqtgraph `ColorMap` for live LUT sliders
 in the SMACC Qt reference app.
 

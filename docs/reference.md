@@ -15,8 +15,8 @@ the top-level package, e.g. `import melanopy as mp; mp.rate_colormap(...)`.
 
 `circadian_cmap` is an alias of `diel`.
 
-The named anchors **`EMBER`** (`alpha=0.0`), **`EQUINOX`** (`alpha=0.55`, the M/P = 1
-crossover), and **`GLACIER`** (`alpha=1.0`) are exported as ready-made
+The named anchors **`SODIUM`** (`alpha=0.0`), **`EQUILUX`** (`alpha=0.55`, the M/P = 1
+crossover), and **`XENON`** (`alpha=1.0`) are exported as ready-made
 `matplotlib.colors.ListedColormap` objects. See [The Diel family](generator.md).
 
 ## matplotlib integration

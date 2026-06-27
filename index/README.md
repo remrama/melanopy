@@ -13,9 +13,9 @@ Popular colormaps scored on the melanopic axis (display white = 1.0).
 Regenerate from the shipped package with `uv run scripts/build_leaderboard.py` (which calls
 `melanopy.rate_colormap`). Scores use the representative-panel coefficients.
 
-Key reads: warm/single-hue maps (Ember, copper) are protective **and** circadian-pure;
+Key reads: warm/single-hue maps (Sodium, copper) are protective **and** circadian-pure;
 the viridis family sits mid-axis but *smeared* (high σ — blue concentrated at the dark
-end); cool maps reach the alerting end but most aren't perceptually uniform. Glacier fills
+end); cool maps reach the alerting end but most aren't perceptually uniform. Xenon fills
 the perceptually-uniform, CVD-safe, alerting slot.
 
 ## `panel_robustness.csv`

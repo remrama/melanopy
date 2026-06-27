@@ -19,18 +19,18 @@ rgb  = mp.diel(0.3)                 # or the raw (256, 3) sRGB array
 
 | anchor | `alpha` | M/P | character |
 |---|---|---|---|
-| **Ember** | 0.00 | 0.29 | warm, protective, circadian-pure |
-| **Equinox** | 0.55 | ≈ 1.00 | circadian-neutral (M/P = 1 crossover) |
-| **Glacier** | 1.00 | 1.73 | cool, alerting |
+| **Sodium** | 0.00 | 0.29 | warm, protective, circadian-pure |
+| **Equilux** | 0.55 | ≈ 1.00 | circadian-neutral (M/P = 1 crossover) |
+| **Xenon** | 1.00 | 1.73 | cool, alerting |
 
-The three anchors are exported as ready-made colormaps (`mp.EMBER`, `mp.EQUINOX`,
-`mp.GLACIER`) and registered with matplotlib by name:
+The three anchors are exported as ready-made colormaps (`mp.SODIUM`, `mp.EQUILUX`,
+`mp.XENON`) and registered with matplotlib by name:
 
 ```python
 mp.register()
-plt.imshow(Z, cmap="ember")     # protective
-plt.imshow(Z, cmap="equinox")   # neutral
-plt.imshow(Z, cmap="glacier")   # alerting
+plt.imshow(Z, cmap="sodium")     # protective
+plt.imshow(Z, cmap="equilux")   # neutral
+plt.imshow(Z, cmap="xenon")   # alerting
 ```
 
 ## Why uniformity comes for free
@@ -52,7 +52,7 @@ both properties actually hold is *verified numerically*, not asserted — see
 [Validation](validation.md).
 
 !!! note "A fundamental warm/cool asymmetry"
-    Ember is far more circadian-pure than Glacier (σ 0.07 vs 0.42). This is a property of the
+    Sodium is far more circadian-pure than Xenon (σ 0.07 vs 0.42). This is a property of the
     display gamut, not a tuning miss: short-wavelength primaries are intrinsically low-luminance,
     so *a light, saturated blue does not exist* — light cool colours must desaturate toward white
     (M/P → 1). A perfectly pure **protective** map is achievable; a perfectly pure **alerting**
