@@ -23,8 +23,7 @@ uv run --extra dev pytest tests/test_sanity.py::test_gray_is_neutral   # single 
 uv run --extra dev ruff check        # lint  (add --fix to autofix)
 uv run --extra dev ruff format       # format
 uv run --extra dev mypy              # type-check (files = src/ only)
-uv run --extra dev pre-commit run --all-files   # ruff-check, ruff-format, mypy
-uv run examples/rate_a_map.py        # run an example (no dev extra needed)
+uv run --extra dev pre-commit run --all-files   # ruff-check, ruff-format, mdformat, mypy
 uv run --extra docs zensical serve   # preview the docs site at localhost:8000
 uv run --extra docs zensical build   # build the docs site to site/ (git-ignored)
 ```
