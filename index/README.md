@@ -4,11 +4,11 @@ Popular colormaps scored on the melanopic axis (display white = 1.0).
 
 ## `leaderboard.csv`
 
-| column | meaning |
-|---|---|
-| `melanopic_ratio` | axis position; **< 1 protective** (warm), **> 1 alerting** (cool) |
+| column            | meaning                                                                          |
+| ----------------- | -------------------------------------------------------------------------------- |
+| `melanopic_ratio` | axis position; **< 1 protective** (warm), **> 1 alerting** (cool)                |
 | `purity_sigma`    | luminance-weighted spread of per-position ratio; **lower = more circadian-pure** |
-| `range_min/max`   | min/max per-position ratio over the (emitting) ramp |
+| `range_min/max`   | min/max per-position ratio over the (emitting) ramp                              |
 
 Regenerate from the shipped package with `uv run scripts/build_leaderboard.py` (which calls
 `melanopy.rate_colormap`). Scores use the representative-panel coefficients.

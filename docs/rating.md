@@ -20,10 +20,10 @@ a weighted sum of three numbers — the **melanopic/photopic ratio of each RGB p
 the representative panel those coefficients are:
 
 | primary | coefficient (M/P) |
-|---|---|
-| R | 0.0031 |
-| G | 0.6555 |
-| B | 10.9681 |
+| ------- | ----------------- |
+| R       | 0.0031            |
+| G       | 0.6555            |
+| B       | 10.9681           |
 
 The blue primary does almost all of the melanopic work — which is exactly why the axis is
 mostly a warm ↔ cool story.
@@ -42,9 +42,9 @@ mp.rate_colormap(c)
 # {'melanopic_ratio': 0.834, 'purity_sigma': 0.556, 'range': (0.395, 3.069)}
 ```
 
-| metric | meaning |
-|---|---|
-| **melanopic ratio (M/P)** | *where* the map sits — luminance-weighted mean position (white = 1). **< 1 protective**, **> 1 alerting**. |
+| metric                                    | meaning                                                                                                       |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **melanopic ratio (M/P)**                 | *where* the map sits — luminance-weighted mean position (white = 1). **< 1 protective**, **> 1 alerting**.    |
 | **circadian purity (σ)** — `purity_sigma` | *how tightly* it sits — luminance-weighted spread of the per-position ratio. **Lower = more circadian-pure.** |
 
 The two are independent. viridis sits mid-axis (0.83 — mildly protective on average) yet has a
@@ -64,12 +64,12 @@ mp.melanopic_ratio([1.0, 0.4, 0.0])   # a warm orange  -> < 1
 Melanopic content depends on the display's primary spectra, which sRGB does **not** fix. So
 both functions take a `panel=` argument selecting among representative archetypes:
 
-| panel | display type |
-|---|---|
-| `representative` *(default)* | narrowband RGB |
-| `led_lcd` | blue-pump white-LED LCD |
-| `oled` | OLED |
-| `wide_gamut` | quantum-dot / wide-gamut |
+| panel                        | display type             |
+| ---------------------------- | ------------------------ |
+| `representative` *(default)* | narrowband RGB           |
+| `led_lcd`                    | blue-pump white-LED LCD  |
+| `oled`                       | OLED                     |
+| `wide_gamut`                 | quantum-dot / wide-gamut |
 
 Absolute M/P shifts with the panel (the blue coefficient ranges ≈ 8.8 to ≈ 13.7), but the
 **ranking is robust** — see [The scored index](leaderboard.md) for the rank-stability result.

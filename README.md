@@ -52,8 +52,8 @@ div = mp.diel_diverging()    # signed: warm protective <- neutral -> cool alerti
 
 - **melanopic ratio (M/P)** - *where* a map sits on the axis (white = 1).
 - **circadian purity (σ)** - *how tightly* it sits (luminance-weighted spread; lower =
-  more circadian-pure). A map can be mildly protective on average yet *smeared* (e.g.
-  viridis dumps blue at its dark end); the two numbers tell that apart.
+    more circadian-pure). A map can be mildly protective on average yet *smeared* (e.g.
+    viridis dumps blue at its dark end); the two numbers tell that apart.
 
 ## Display panels
 

@@ -9,7 +9,7 @@ short-wavelength, **melanopic** (melatonin-suppressing) light a map emits — an
 - **measurable** — a [rater](rating.md) that scores any colormap on the axis (display white = 1.0);
 - **surveyed** — a [scored index](leaderboard.md) of the colormaps people already use;
 - **generatable** — the [Diel family](generator.md), a one-parameter ramp that walks the axis
-  while holding uniformity and CVD-safety fixed.
+    while holding uniformity and CVD-safety fixed.
 
 For people who read screens as their main light source at night — sleep labs, observatories,
 NICUs, night radiology, control rooms — large data-fills (spectrograms, density maps) actually
@@ -17,6 +17,7 @@ emit light, and their colour content can cooperate with, or fight, a chosen circ
 strategy.
 
 !!! warning "Honest scope — a colour property, not a dose"
+
     Melanopy rates a colour's **chromaticity**, not light **dose**. Real circadian load also
     depends on screen brightness, screen fill, viewing distance, and ambient light. If you
     genuinely need to stay alert, the dominant lever is room lighting. The value here is
@@ -56,10 +57,10 @@ cmap = mp.diel(0.3, as_cmap=True)
 
 ## The two metrics
 
-| metric | what it tells you |
-|---|---|
-| **melanopic ratio (M/P)** | *where* a map sits on the axis (display white = 1) |
-| **circadian purity (σ)** | *how tightly* it sits — luminance-weighted spread; lower = more circadian-pure |
+| metric                    | what it tells you                                                              |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| **melanopic ratio (M/P)** | *where* a map sits on the axis (display white = 1)                             |
+| **circadian purity (σ)**  | *how tightly* it sits — luminance-weighted spread; lower = more circadian-pure |
 
 A map can be mildly protective on average yet *smeared* (viridis dumps blue at its dark end);
 the two numbers tell that apart. See [Rating colormaps](rating.md).
