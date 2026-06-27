@@ -81,3 +81,37 @@ slider = Slider(sax, "Circadian (α)", 0.0, 1.0, valinit=0.0)
 slider.on_changed(lambda v: (im.set_cmap(mp.diel(v, as_cmap=True)), fig.canvas.draw_idle()))
 plt.show()
 ```
+
+## Match the map to the data
+
+The melanopic axis isn't only a score to evaluate against — it can *carry* the data's meaning.
+When the data is itself circadian, a circadian colormap makes the encoding self-documenting:
+let the alerting end mark wakefulness and the protective end mark sleep, and the map's
+melanopic axis *is* the sleep–wake axis.
+
+![A sleep–wake raster coloured by diel_sweep, and a circadian alerting-drive curve coloured by diel_diverging](assets/figures/sleep_wake_demo.png){ loading=lazy }
+
+Reach for the **sequential** `diel_sweep` for an unsigned state (asleep → awake), and the
+**diverging** `diel_diverging` for a signed quantity (sleep-promoting ↔ alerting, neutral at
+the zero crossing). The raster:
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+import melanopy as mp
+
+# Wakefulness 0 (asleep) .. 1 (awake) over a noon-to-noon day, for two weeks.
+hours = np.linspace(12, 36, 144)
+days = np.arange(14)[:, None]
+rise = 1 / (1 + np.exp(-2.6 * (hours - (23.2 + 0.11 * days))))  # asleep in the evening
+fall = 1 / (1 + np.exp(-2.6 * ((31.4 + 0.04 * days) - hours)))  # awake the next morning
+wake = np.clip(1 - rise * fall, 0, 1)
+
+# Sequential: cool = awake (alerting), warm = asleep (protective).
+plt.imshow(wake, aspect="auto", cmap=mp.diel_sweep(as_cmap=True), vmin=0, vmax=1)
+plt.show()
+```
+
+The full two-panel figure above — including the `diel_diverging` alerting-drive curve — is
+reproducible with `uv run scripts/build_sleep_wake_demo.py`.
