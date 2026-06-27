@@ -6,3 +6,6 @@ dist/
 .*_cache/
 .DS_Store
 examples/*.png
+
+# Zensical docs build output
+site/
