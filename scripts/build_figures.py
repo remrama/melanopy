@@ -1,13 +1,12 @@
 """Regenerate the paper figures from the shipped package (repo-relative, reproducible).
 
-Replaces the prototype builders in NOTES/scripts/ (which carried /home/claude paths, prototype
-imports, and a duplicated analytic rater). Everything here reads from `melanopy` and the scored
-index in `index/`; CVD simulation uses `colorspacious` (the dev-extra dependency the tests use).
+Everything here reads from `melanopy` and the scored index in `index/`; CVD simulation uses
+`colorspacious` (the dev-extra dependency the tests use).
 
     uv run --extra dev scripts/build_figures.py             # all figures
     uv run --extra dev scripts/build_figures.py generator   # just one
 
-Figures are written to NOTES/paper/figures/ (alongside the manuscript draft).
+Figures are written to manuscript/figures/ (alongside the manuscript draft).
 """
 
 import csv
@@ -26,7 +25,7 @@ import melanopy as mp
 from melanopy.coeffs import LUM_W
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "NOTES" / "paper" / "figures"
+OUT = ROOT / "manuscript" / "figures"
 T = np.linspace(0, 1, 256)
 CVD = [
     ("normal", None),
@@ -341,14 +340,14 @@ def fig_validation(path):
     plt.close(fig)
 
 
-# ----------------------------------------------------------------------------- nightwatch
+# ----------------------------------------------------------------------------- melanopic colormaps
 def _pairwise_min(colors):
     lab = cs.cspace_convert(np.clip(colors, 0, 1), "sRGB1", "CAM02-UCS")
     d = np.linalg.norm(lab[:, None, :] - lab[None, :, :], axis=-1)
     return d[d > 0].min()
 
 
-def fig_nightwatch(path):
+def fig_melanopic_colormaps(path):
     sodium = mp.diel(0.0)
     cat = np.array([to_rgb(c) for c in mp.CATEGORICAL_DARK])
     names = mp.CATEGORICAL_NAMES
@@ -434,7 +433,7 @@ FIGURES = {
     "generator": (fig_generator, "circadian_generator.png"),
     "leaderboard": (fig_leaderboard, "melanopic_leaderboard.png"),
     "validation": (fig_validation, "s026_validation.png"),
-    "nightwatch": (fig_nightwatch, "nightwatch_colormaps.png"),
+    "melanopic_colormaps": (fig_melanopic_colormaps, "melanopic_colormaps.png"),
 }
 
 
