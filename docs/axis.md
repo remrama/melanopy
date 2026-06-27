@@ -40,7 +40,7 @@ screen area.**
 This split is why Melanopy treats *sequential* fills as the place the melanopic axis earns its
 keep, and keeps categorical colour a separate, fixed concern.
 
-![Sodium under simulated dichromacy, and the CVD-safe categorical set with its separation under colour blindness](assets/figures/nightwatch_colormaps.png){ loading=lazy }
+![Sodium under simulated dichromacy, and the CVD-safe categorical set with its separation under colour blindness](assets/figures/melanopic_colormaps.png){ loading=lazy }
 
 Sodium stays order-preserving under simulated dichromacy (top — lightness does the work); the
 single CVD-safe categorical set stays well-separated under colour blindness (middle and bottom),

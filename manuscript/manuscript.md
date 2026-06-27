@@ -111,7 +111,7 @@ melanopic budget on *sequential fills* and to keep categorical colour a separate
 (Melanopy ships exactly one CVD-safe categorical palette, justified by this argument; it stays
 well-separated under simulated colour blindness, Fig. 1.)
 
-![**Figure 1.** The area-weighted budget in practice. *Top:* the protective endpoint Sodium under simulated dichromacy stays order-preserving — lightness does the ordering work. *Middle/bottom:* the single CVD-safe categorical palette stays well-separated under colour blindness, so one palette serves every circadian regime.](figures/nightwatch_colormaps.png)
+![**Figure 1.** The area-weighted budget in practice. *Top:* the protective endpoint Sodium under simulated dichromacy stays order-preserving — lightness does the ordering work. *Middle/bottom:* the single CVD-safe categorical palette stays well-separated under colour blindness, so one palette serves every circadian regime.](figures/melanopic_colormaps.png)
 
 ## 4. Rating colormaps
 
@@ -359,9 +359,8 @@ The melanopic axis itself is therefore *not* novel — it is mature in lighting.
 the port to scientific colormaps as four specific artifacts:** a melanopic *rater for colormaps*, a
 *per-data-position* melanopic profile, a *scored index* of existing scientific maps, and a
 *perceptual-uniformity- and CVD-constrained generator* parameterized by melanopic content. We
-searched the three literatures above and found no precedent for any of the four. The search — its
-fields, queries, and findings — is documented in the companion `prior_art.md`; it is a defensible
-related-work pass, English-only and without a patent-database sweep, not an exhaustive systematic
+searched the three literatures above and found no precedent for any of the four — a defensible
+related-work pass (English-only, without a patent-database sweep), not an exhaustive systematic
 review.
 
 ## 11. Availability & reproducibility

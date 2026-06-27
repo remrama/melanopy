@@ -340,14 +340,14 @@ def fig_validation(path):
     plt.close(fig)
 
 
-# ----------------------------------------------------------------------------- nightwatch
+# ----------------------------------------------------------------------------- melanopic colormaps
 def _pairwise_min(colors):
     lab = cs.cspace_convert(np.clip(colors, 0, 1), "sRGB1", "CAM02-UCS")
     d = np.linalg.norm(lab[:, None, :] - lab[None, :, :], axis=-1)
     return d[d > 0].min()
 
 
-def fig_nightwatch(path):
+def fig_melanopic_colormaps(path):
     sodium = mp.diel(0.0)
     cat = np.array([to_rgb(c) for c in mp.CATEGORICAL_DARK])
     names = mp.CATEGORICAL_NAMES
@@ -433,7 +433,7 @@ FIGURES = {
     "generator": (fig_generator, "circadian_generator.png"),
     "leaderboard": (fig_leaderboard, "melanopic_leaderboard.png"),
     "validation": (fig_validation, "s026_validation.png"),
-    "nightwatch": (fig_nightwatch, "nightwatch_colormaps.png"),
+    "melanopic_colormaps": (fig_melanopic_colormaps, "melanopic_colormaps.png"),
 }
 
 
