@@ -54,7 +54,8 @@ The dependency flow is a one-way pipeline — understand this before editing:
    protective on average yet smeared). sRGB is linearized before weighting.
 4. **`generator.py`** — the "Diel family". Independent of `coeffs.py`: it is pure OKLab
    geometry. One shared monotonic lightness profile (`_L` over `_POS`) is used for every
-   `alpha`, so perceptual uniformity and CVD-safety hold *by construction*; `alpha` in [0, 1]
+   `alpha`, so the ramp stays near-uniform and order-recoverable under CVD (both verified
+   numerically in `tests/test_perceptual.py`, not merely asserted); `alpha` in [0, 1]
    morphs only the chroma vector (warm `_WARM` → cool `_COOL`). `_clamp()` reduces chroma to
    stay in sRGB gamut while preserving L and hue. The melanopic ratio is therefore an
    *emergent, monotonic* property of alpha, not something the generator computes — that

@@ -38,6 +38,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "colorspacious>=1.1.2",
     "ipython>=9.14.0",
     "mypy>=2.1.0",
     "pre-commit>=4.6.0",
@@ -63,7 +64,7 @@ melanopy = ["data/*"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-include = ["pyproject.toml", "examples/*.py", "src/**/*.py"]
+include = ["pyproject.toml", "examples/*.py", "scripts/*.py", "src/**/*.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W", "C90", "UP", "NPY201"]  # ["E4", "E7", "E9"]

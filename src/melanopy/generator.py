@@ -4,11 +4,12 @@ diel(alpha): a perceptually-uniform, CVD-safe colormap whose colour temperature 
 melanopic ratio) is set by alpha in [0, 1]:
     0 = protective (Ember, warm, low melanopic)   1 = alerting (Glacier, cool, high melanopic)
 
-One monotonic OKLab lightness profile is shared by every alpha, so perceptual uniformity
-and colourblind-safety hold by construction; alpha morphs only the chroma vector (warm ->
-near-neutral crossover ~0.52 -> cool). Melanopic ratio is the emergent, monotonic dial.
+A shared monotonic OKLab lightness profile keeps the order recoverable under CVD and the
+ramp close to perceptually uniform (both verified numerically in the tests); alpha morphs
+only the chroma vector (warm -> near-neutral crossover ~0.55 -> cool). Melanopic ratio is
+the emergent, monotonic dial.
 
-Named anchors: EMBER (0.0), EQUINOX (~neutral crossover, 0.52), GLACIER (1.0).
+Named anchors: EMBER (0.0), EQUINOX (M/P=1 crossover, ~0.55), GLACIER (1.0).
 """
 
 import numpy as np
@@ -92,7 +93,7 @@ def diel(alpha, n=256, as_cmap=False, name=None):
 circadian_cmap = diel  # alias
 
 EMBER = diel(0.0, as_cmap=True, name="ember")  # protective endpoint
-EQUINOX = diel(0.55, as_cmap=True, name="equinox")  # ~circadian-neutral crossover (M/P ~ 1)
+EQUINOX = diel(0.55, as_cmap=True, name="equinox")  # M/P=1 crossover (alpha 0.55 -> M/P 0.999)
 GLACIER = diel(1.0, as_cmap=True, name="glacier")  # alerting endpoint
 
 __all__ = ["diel", "circadian_cmap", "EMBER", "EQUINOX", "GLACIER"]
