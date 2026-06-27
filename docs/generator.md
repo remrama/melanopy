@@ -57,3 +57,40 @@ both properties actually hold is *verified numerically*, not asserted — see
     so *a light, saturated blue does not exist* — light cool colours must desaturate toward white
     (M/P → 1). A perfectly pure **protective** map is achievable; a perfectly pure **alerting**
     one is not, under a shared lightness profile.
+
+## Beyond one dial — full-axis and diverging maps
+
+`diel(alpha)` fixes the melanopic temperature and renders it as a sequential ramp. Two derived
+maps cover the other common needs.
+
+### `diel_sweep` — the whole axis in one map
+
+Where `diel` holds the temperature fixed, **`diel_sweep`** lets it rise *along* the ramp: low data
+is protective (warm, Sodium-like), high data is alerting (cool, Xenon-like), so the **melanopic
+ratio increases ~linearly with the data value** (≈ 0.38 → 1.29). The data axis literally *is* the
+melanopic axis, which makes it a natural teaching map; lightness still rises monotonically, so it
+stays ordered and CVD-recoverable.
+
+```python
+rgb = mp.diel_sweep()              # (256, 3) sRGB
+plt.imshow(Z, cmap="diel_sweep")  # after mp.register()
+```
+
+It is the one melanopic-aware generator: positions are calibrated against the rater to linearize
+M/P, whereas the core `diel` stays pure OKLab geometry.
+
+### `diel_diverging` — signed data
+
+For signed data (z-scored EEG, ERP differences, anomalies) **`diel_diverging`** places a light,
+**circadian-neutral centre** (M/P = 1) between a warm protective arm (Sodium, M/P < 1) and a cool
+alerting arm (Xenon, M/P > 1):
+
+```python
+rgb = mp.diel_diverging()             # warm below the centre, cool above
+plt.imshow(Z, cmap="diel_diverging")  # pair with a symmetric / centered norm
+```
+
+!!! warning "Diverging maps and CVD"
+    Like most diverging maps, the two arms are told apart across zero by **hue**, which colour
+    blindness compresses — so `diel_diverging` is **not** CVD-order-recoverable. When CVD-safety
+    matters, reach for the sequential maps (`diel`, `diel_sweep`).

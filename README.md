@@ -34,12 +34,16 @@ print(mp.rate_colormap(c))
 
 # Use the named endpoints (registered with matplotlib)
 mp.register()
-plt.imshow(Z, cmap="sodium")     # protective: warm, low-melanopic
-plt.imshow(Z, cmap="xenon")   # alerting:   cool, high-melanopic
+plt.imshow(Z, cmap="sodium")    # protective: warm, low-melanopic
+plt.imshow(Z, cmap="xenon")     # alerting:   cool, high-melanopic
 plt.imshow(Z, cmap="equilux")   # circadian-neutral (M/P ~ 1)
 
 # Dial the whole axis: alpha 0 (protective) .. 1 (alerting)
 cmap = mp.diel(0.3, as_cmap=True)
+
+# Or walk the whole axis in one map, or diverge for signed data
+seq = mp.diel_sweep()        # protective -> alerting; melanopic ratio ~linear in the data
+div = mp.diel_diverging()    # signed: warm protective <- neutral -> cool alerting
 ```
 
 `melanopic_ratio` < 1 → protective (warm); > 1 → alerting (cool/blue).
