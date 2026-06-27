@@ -17,6 +17,8 @@ a chosen circadian lighting strategy.
 > here is measurability, a scored index, a uniformity-preserving generator, and surfacing
 > the axis. The physiological effect of a colormap alone is second-order.
 
+📖 **Documentation:** <https://remrama.github.io/melanopy/>
+
 ## Quickstart
 
 ```python

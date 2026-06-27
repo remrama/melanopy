@@ -1,0 +1,136 @@
+# Zensical configuration — https://zensical.org/docs/
+# Build: `uv run --extra docs zensical build`   Preview: `uv run --extra docs zensical serve`
+
+[project]
+site_name = "Melanopy"
+site_description = """
+A melanopic (circadian) axis for scientific colormaps: a rater, a scored index of \
+existing maps, and a uniformity- and CVD-preserving generator."""
+site_author = "Remington Mallett"
+site_url = "https://remrama.github.io/melanopy/"
+copyright = "Copyright &copy; 2026 Remington Mallett — code MIT; CIE data CC BY-SA 4.0"
+
+repo_url = "https://github.com/remrama/melanopy"
+repo_name = "remrama/melanopy"
+edit_uri = "edit/main/docs/"
+
+nav = [
+  { "Home" = "index.md" },
+  { "The melanopic axis" = "axis.md" },
+  { "Rating colormaps" = "rating.md" },
+  { "The scored index" = "leaderboard.md" },
+  { "The Diel family" = "generator.md" },
+  { "Validation" = "validation.md" },
+  { "Limitations" = "limitations.md" },
+  { "API reference" = "reference.md" },
+]
+
+# ----------------------------------------------------------------------------
+# Theme
+# ----------------------------------------------------------------------------
+[project.theme]
+language = "en"
+features = [
+  "announce.dismiss",
+  "content.action.edit",
+  "content.action.view",
+  "content.code.annotate",
+  "content.code.copy",
+  "content.code.select",
+  "content.footnote.tooltips",
+  "content.tabs.link",
+  "content.tooltips",
+  "navigation.footer",
+  "navigation.indexes",
+  "navigation.instant",
+  "navigation.instant.prefetch",
+  "navigation.path",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+  "toc.follow",
+]
+
+[project.theme.icon]
+logo = "lucide/sun-moon"
+repo = "fontawesome/brands/github"
+
+# Light mode
+[[project.theme.palette]]
+scheme = "default"
+primary = "indigo"
+accent = "deep orange"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+# Dark mode
+[[project.theme.palette]]
+scheme = "slate"
+primary = "indigo"
+accent = "deep orange"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/remrama/melanopy"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/python"
+link = "https://pypi.org/project/melanopy/"
+
+# ----------------------------------------------------------------------------
+# Markdown extensions (Zensical defaults)
+# ----------------------------------------------------------------------------
+[project.markdown_extensions.abbr]
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.def_list]
+[project.markdown_extensions.footnotes]
+[project.markdown_extensions.md_in_html]
+[project.markdown_extensions.toc]
+permalink = true
+[project.markdown_extensions.pymdownx.arithmatex]
+generic = true
+[project.markdown_extensions.pymdownx.betterem]
+[project.markdown_extensions.pymdownx.caret]
+[project.markdown_extensions.pymdownx.details]
+[project.markdown_extensions.pymdownx.emoji]
+emoji_generator = "zensical.extensions.emoji.to_svg"
+emoji_index = "zensical.extensions.emoji.twemoji"
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.keys]
+[project.markdown_extensions.pymdownx.magiclink]
+[project.markdown_extensions.pymdownx.mark]
+[project.markdown_extensions.pymdownx.smartsymbols]
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true
+combine_header_slug = true
+[project.markdown_extensions.pymdownx.tasklist]
+custom_checkbox = true
+[project.markdown_extensions.pymdownx.tilde]
+
+# ----------------------------------------------------------------------------
+# API reference (mkdocstrings — Python handler; `uv add --optional docs mkdocstrings-python`)
+# ----------------------------------------------------------------------------
+[project.plugins.mkdocstrings.handlers.python]
+inventories = ["https://docs.python.org/3/objects.inv"]
+paths = ["src"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "numpy"
+docstring_section_style = "table"
+show_root_heading = true
+show_root_full_path = false
+show_source = false
+separate_signature = true
+show_signature_annotations = true
+members_order = "source"

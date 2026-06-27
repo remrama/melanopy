@@ -25,9 +25,14 @@ uv run --extra dev ruff format       # format
 uv run --extra dev mypy              # type-check (files = src/ only)
 uv run --extra dev pre-commit run --all-files   # ruff-check, ruff-format, mypy
 uv run examples/rate_a_map.py        # run an example (no dev extra needed)
+uv run --extra docs zensical serve   # preview the docs site at localhost:8000
+uv run --extra docs zensical build   # build the docs site to site/ (git-ignored)
 ```
 
 `qt` is a separate extra (`uv run --extra qt ...`) needed only for the pyqtgraph adapter.
+`docs` is a separate extra (`uv run --extra docs ...`) for the Zensical documentation site:
+config in `zensical.toml`, pages in `docs/` (a downstream rendering of the manuscript prose),
+API reference via mkdocstrings, deployed to GitHub Pages by `.github/workflows/docs.yml`.
 
 ## Architecture
 
