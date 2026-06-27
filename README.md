@@ -48,3 +48,10 @@ cmap = mp.diel(0.3, as_cmap=True)
 - **circadian purity (σ)** - *how tightly* it sits (luminance-weighted spread; lower =
   more circadian-pure). A map can be mildly protective on average yet *smeared* (e.g.
   viridis dumps blue at its dark end); the two numbers tell that apart.
+
+## Licensing
+
+Melanopy's code is MIT-licensed. The spectral reference tables bundled in
+`src/melanopy/data/` are verbatim CIE data tables (CIE S 026:2018 and the CIE 1931 2°
+observer), © CIE and licensed **CC BY-SA 4.0** — they are **not** covered by the MIT license.
+See [`src/melanopy/data/NOTICE.md`](src/melanopy/data/NOTICE.md) for sources, DOIs, and terms.

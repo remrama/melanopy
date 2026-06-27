@@ -1,8 +1,9 @@
 """Spectral basis: CIE S 026 melanopic action spectrum + CIE 1931 2° V(λ),
 plus a helper to derive display coefficients from measured primary SPDs.
 
-Data files in melanopy/data/ are vendored from the CIE Toolbox (via luxpy).
-See melanopy/data/NOTICE.md for provenance and licensing (CONFIRM before public release).
+Data files in melanopy/data/ are verbatim CIE reference tables (CIE S 026:2018 Table 2;
+CIE 1931 2° observer), © CIE and licensed CC BY-SA 4.0 — not under Melanopy's MIT license.
+See melanopy/data/NOTICE.md for full provenance, DOIs, and licensing.
 """
 
 import io
