@@ -55,3 +55,16 @@ This is the project's good-faith provenance record, not formal legal advice.
 > which CC BY-SA 4.0 already permits — while adding a network/offline dependency and not
 > changing the coefficient-derivation question above. Melanopy's rater/generator never read
 > these files; only `melanopy.spectra` does, to derive the coefficients in `melanopy.coeffs`.
+
+## Panel models vs. measured SPDs
+
+The per-panel coefficients in `melanopy.coeffs.PANELS` are derived from *modeled* primary-SPD
+archetypes (`melanopy.spectra.panel_primaries`: narrowband RGB, blue-pump white-LED-LCD, OLED,
+wide-gamut QD), **not** measured panels — the rated quantity is a colour property, and the
+colormap ranking is stable across these archetypes (Spearman ρ ≥ 0.99).
+
+Measured display-primary SPDs exist for an external cross-check and are **not** vendored here:
+the `colour-science` package (BSD-3) ships `MSDS_DISPLAY_PRIMARIES` with an Apple Studio Display
+flat-panel LCD (Fairchild & Wyble 1998) and a typical CRT (Brainard, via Machado 2010). Both are
+older CRT/CCFL panels rather than the modern LED/OLED archetypes modelled above; validating the
+modelled coefficients against measured SPDs is left as future work.

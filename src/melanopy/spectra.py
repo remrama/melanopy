@@ -39,13 +39,40 @@ SMEL = melanopic_action_spectrum()
 V = vlambda()
 
 
+def _gauss(peak, fwhm):
+    return np.exp(-0.5 * ((WL - peak) / (fwhm / 2.3548)) ** 2)
+
+
 def representative_primaries():
-    """Gaussian narrowband-RGB model (peaks R625/G530/B460 nm)."""
+    """Narrowband RGB-LED / quantum-dot model (peaks R625/G530/B460 nm) — the default panel."""
+    return {"R": _gauss(625, 28), "G": _gauss(530, 35), "B": _gauss(460, 22)}
 
-    def g(peak, fwhm):
-        return np.exp(-0.5 * ((WL - peak) / (fwhm / 2.3548)) ** 2)
 
-    return {"R": g(625, 28), "G": g(530, 35), "B": g(460, 22)}
+PANEL_KINDS = ("representative", "led_lcd", "oled", "wide_gamut")
+
+
+def panel_primaries(kind="representative"):
+    """Primary SPDs {R,G,B} on WL for a panel *archetype* (representative models, not measured).
+
+    These span the spectral diversity the per-primary coefficients depend on; feed any of them
+    to coefficients_from_primaries() to (re)derive the numbers baked in melanopy.coeffs. See
+    data/NOTICE.md for the measured-SPD cross-check left as future work.
+
+    representative  narrowband RGB-LED / quantum-dot (the default)
+    led_lcd         blue-pump white-LED backlight (blue spike + broad phosphor) x LCD filters
+    oled            broad self-emissive RGB
+    wide_gamut      very narrow quantum-dot (DCI-P3 / Rec. 2020 class)
+    """
+    if kind == "representative":
+        return representative_primaries()
+    if kind == "led_lcd":
+        bl = _gauss(451, 20) + 1.4 * _gauss(560, 95)  # blue-pump backlight, carved by filters
+        return {"R": bl * _gauss(612, 90), "G": bl * _gauss(540, 70), "B": bl * _gauss(452, 46)}
+    if kind == "oled":
+        return {"R": _gauss(620, 40), "G": _gauss(530, 48), "B": _gauss(465, 32)}
+    if kind == "wide_gamut":
+        return {"R": _gauss(630, 24), "G": _gauss(525, 26), "B": _gauss(450, 20)}
+    raise ValueError(f"unknown panel archetype: {kind!r}")
 
 
 def coefficients_from_primaries(primaries, smel=None, vlam=None):

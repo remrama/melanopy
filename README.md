@@ -49,6 +49,16 @@ cmap = mp.diel(0.3, as_cmap=True)
   more circadian-pure). A map can be mildly protective on average yet *smeared* (e.g.
   viridis dumps blue at its dark end); the two numbers tell that apart.
 
+## Display panels
+
+Melanopic content depends on the display's primary spectra, which sRGB doesn't fix — so the
+rater takes a `panel=` argument selecting among representative archetypes (`representative`
+narrowband, `led_lcd` blue-pump white-LED, `oled`, `wide_gamut` quantum-dot). Absolute M/P
+shifts with the panel (the blue coefficient ranges ≈8.8 to ≈13.7), but the **ranking is
+robust**: Spearman ρ ≥ 0.99 across panels, and display white stays exactly 1.0 (see
+[`index/`](index/README.md)). For exact numbers on a specific monitor, plug its measured
+primary SPDs into `melanopy.spectra.coefficients_from_primaries`.
+
 ## Licensing
 
 Melanopy's code is MIT-licensed. The spectral reference tables bundled in
