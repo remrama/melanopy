@@ -88,3 +88,8 @@ in the SMACC Qt reference app.
   inlined, not pulled from a color library). Keep new color math in the same style rather
   than adding heavy dependencies — base runtime deps are only numpy + matplotlib.
 - Public API is curated in `__init__.py`'s `__all__`; export new public symbols there.
+- **Git workflow:** the repo *squash-merges* PRs, so branch fresh off `origin/main` before new work
+  (a stale branch tip is content-duplicated in `main`, making the next PR read `CONFLICTING`).
+  Conventional-commit style for commit messages and PR titles; keep PR bodies brief; no AI attribution.
+- **Release:** push a version tag → `.github/workflows/release.yml` publishes to PyPI (Trusted
+  Publisher); the docs site deploys from `main` via `docs.yml`.

@@ -3,7 +3,7 @@
 Scores a spread of common matplotlib colormaps plus the Melanopy endpoints on the
 melanopic axis via :func:`melanopy.rate_colormap`, and writes them sorted protective ->
 alerting. Repo-relative and dependency-light (only ``melanopy`` + matplotlib's builtin
-colormaps); supersedes the prototype ``NOTES/scripts/build_rater.py``.
+colormaps).
 
     uv run scripts/build_leaderboard.py
 """

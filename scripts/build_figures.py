@@ -1,13 +1,12 @@
 """Regenerate the paper figures from the shipped package (repo-relative, reproducible).
 
-Replaces the prototype builders in NOTES/scripts/ (which carried /home/claude paths, prototype
-imports, and a duplicated analytic rater). Everything here reads from `melanopy` and the scored
-index in `index/`; CVD simulation uses `colorspacious` (the dev-extra dependency the tests use).
+Everything here reads from `melanopy` and the scored index in `index/`; CVD simulation uses
+`colorspacious` (the dev-extra dependency the tests use).
 
     uv run --extra dev scripts/build_figures.py             # all figures
     uv run --extra dev scripts/build_figures.py generator   # just one
 
-Figures are written to NOTES/paper/figures/ (alongside the manuscript draft).
+Figures are written to manuscript/figures/ (alongside the manuscript draft).
 """
 
 import csv
@@ -26,7 +25,7 @@ import melanopy as mp
 from melanopy.coeffs import LUM_W
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "NOTES" / "paper" / "figures"
+OUT = ROOT / "manuscript" / "figures"
 T = np.linspace(0, 1, 256)
 CVD = [
     ("normal", None),
