@@ -32,10 +32,10 @@ Why does the axis matter for some marks and not others? Because **emitted light 
 screen area.**
 
 - **Large fills** — spectrograms, density maps, heatmaps — cover a big fraction of the screen,
-  so their colour content dominates the light the display emits. The axis matters for them.
+    so their colour content dominates the light the display emits. The axis matters for them.
 - **Small categorical marks** — lines, points, glyphs — emit negligibly regardless of colour.
-  For them the axis is effectively *"ignore it"*: one CVD-safe categorical palette serves every
-  circadian regime (Melanopy ships exactly one — the `CATEGORICAL_*` palettes).
+    For them the axis is effectively *"ignore it"*: one CVD-safe categorical palette serves every
+    circadian regime (Melanopy ships exactly one — the `CATEGORICAL_*` palettes).
 
 This split is why Melanopy treats *sequential* fills as the place the melanopic axis earns its
 keep, and keeps categorical colour a separate, fixed concern.
@@ -46,10 +46,10 @@ Sodium stays order-preserving under simulated dichromacy (top — lightness does
 single CVD-safe categorical set stays well-separated under colour blindness (middle and bottom),
 so one palette serves every circadian regime.
 
-[^viridis]: Smith, N. & van der Walt, S. (2015). *A better default colormap for matplotlib.* SciPy.
-[^moreland]: Moreland, K. (2009). *Diverging color maps for scientific visualization.* ISVC.
-[^crameri]: Crameri, F., Shephard, G. E. & Heron, P. J. (2020). *The misuse of colour in science communication.* Nature Communications.
-[^cmocean]: Thyng, K. M. et al. (2016). *True colors of oceanography: guidelines for effective and accurate colormap selection.* Oceanography.
-[^colorbrewer]: Harrower, M. & Brewer, C. A. (2003). *ColorBrewer.org: an online tool for selecting colour schemes for maps.* The Cartographic Journal.
-[^s026]: CIE S 026:2018. *CIE system for metrology of optical radiation for ipRGC-influenced responses to light.*
-[^lucas]: Lucas, R. J. et al. (2014). *Measuring and using light in the melanopsin age.* Trends in Neurosciences.
+\[^viridis\]: Smith, N. & van der Walt, S. (2015). *A better default colormap for matplotlib.* SciPy.
+\[^moreland\]: Moreland, K. (2009). *Diverging color maps for scientific visualization.* ISVC.
+\[^crameri\]: Crameri, F., Shephard, G. E. & Heron, P. J. (2020). *The misuse of colour in science communication.* Nature Communications.
+\[^cmocean\]: Thyng, K. M. et al. (2016). *True colors of oceanography: guidelines for effective and accurate colormap selection.* Oceanography.
+\[^colorbrewer\]: Harrower, M. & Brewer, C. A. (2003). *ColorBrewer.org: an online tool for selecting colour schemes for maps.* The Cartographic Journal.
+\[^s026\]: CIE S 026:2018. *CIE system for metrology of optical radiation for ipRGC-influenced responses to light.*
+\[^lucas\]: Lucas, R. J. et al. (2014). *Measuring and using light in the melanopsin age.* Trends in Neurosciences.

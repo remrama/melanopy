@@ -27,12 +27,13 @@ The generator's structural claims are checked with `colorspacious` in
 `tests/test_perceptual.py`:
 
 - **Perceptual uniformity** — the CAM02-UCS lightness (J′) is strictly increasing along each
-  Diel map, and the CAM02-UCS step sizes are near-constant (coefficient of variation < 0.30).
+    Diel map, and the CAM02-UCS step sizes are near-constant (coefficient of variation < 0.30).
 - **CVD order-recoverability** — under simulated deuteranopia, protanopia, and tritanopia
-  (Machado 2009, severity 100), the perceived lightness stays strictly monotonic, so the data
-  order is still recoverable.
+    (Machado 2009, severity 100), the perceived lightness stays strictly monotonic, so the data
+    order is still recoverable.
 
 !!! quote "Wording, calibrated"
+
     A shared monotone-lightness profile keeps order **CVD-recoverable** (not the stronger
     "CVD-safe"), and perceptual uniformity and CVD-recoverability are **verified numerically**.
     We say exactly what the tests show — see [Limitations](limitations.md).

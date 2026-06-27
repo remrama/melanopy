@@ -7,30 +7,32 @@ Melanopy's MIT license, which applies to the code only.
 ## Files
 
 ### `cie_s026_actionspectra.csv`
+
 CIE S 026:2018 *α-opic action spectra* (columns: `nm, sc, mc, lc, rh, mel`). The **`mel`**
 column — the melanopic action spectrum — is the one consumed by the rater; the others are
 included as-published. Each spectrum is normalised to a peak of 1.0 (melanopic peaks at
 490 nm), with `NaN` outside each photoreceptor's defined range.
 
 - **Primary source:** CIE S 026/E:2018, *CIE System for Metrology of Optical Radiation for
-  ipRGC-Influenced Responses to Light*, Table 2.
+    ipRGC-Influenced Responses to Light*, Table 2.
 - **Data table:** CIE 2018, *CIE α-opic action spectra*, International Commission on
-  Illumination (CIE), Vienna, AT. DOI: [10.25039/CIE.DS.vqqhzp5a](https://doi.org/10.25039/CIE.DS.vqqhzp5a)
+    Illumination (CIE), Vienna, AT. DOI: [10.25039/CIE.DS.vqqhzp5a](https://doi.org/10.25039/CIE.DS.vqqhzp5a)
 - **Source file:** <https://files.cie.co.at/CIE_a-opic_action_spectra.csv> (380–780 nm).
 - **Changes:** values verbatim (verified identical to the CIE source); reformatted only by
-  adding the header row and padding the grid to 360–830 nm with `NaN`.
+    adding the header row and padding the grid to 360–830 nm with `NaN`.
 
 ### `ciexyz_1931_2.dat`
+
 CIE 1931 2° standard colorimetric observer colour-matching functions (columns:
 `nm, x̄, ȳ, z̄`); **ȳ = V(λ)**, the photopic luminous efficiency function (ȳ(555 nm) = 1.0
 by definition). 360–830 nm at 1 nm.
 
 - **Primary source:** CIE 1931 2° standard colorimetric observer (ISO/CIE 11664-1).
 - **Data table:** CIE 2019, *Colour-matching functions of CIE 1931 standard colorimetric
-  observer*, International Commission on Illumination (CIE), Vienna, AT. DOI:
-  [10.25039/CIE.DS.xvudnb9b](https://doi.org/10.25039/CIE.DS.xvudnb9b)
+    observer*, International Commission on Illumination (CIE), Vienna, AT. DOI:
+    [10.25039/CIE.DS.xvudnb9b](https://doi.org/10.25039/CIE.DS.xvudnb9b)
 - **Source file:** <https://files.cie.co.at/CIE_xyz_1931_2deg.csv> (values verbatim; stored
-  with a `.dat` extension, no header).
+    with a `.dat` extension, no header).
 
 ## Licensing
 
@@ -41,13 +43,13 @@ per each dataset's metadata at files.cie.co.at. CC BY-SA 4.0 **permits redistrib
 changes are indicated — all done above.
 
 - **Code vs. data.** Melanopy's MIT license covers its source. These data files keep their
-  CC BY-SA 4.0 license. Bundling a CC-licensed file alongside separately-licensed code is a
-  *collection* under CC BY-SA 4.0 §1(b)/§4 — it does **not** place the code under CC BY-SA.
+    CC BY-SA 4.0 license. Bundling a CC-licensed file alongside separately-licensed code is a
+    *collection* under CC BY-SA 4.0 §1(b)/§4 — it does **not** place the code under CC BY-SA.
 - **ShareAlike.** Only *adaptations* of the data must themselves be CC BY-SA. The bundled
-  files are unmodified (value-verbatim). The three per-primary coefficients baked into
-  `melanopy.coeffs` are factual scalars derived jointly from these spectra and Melanopy's own
-  primary model (`melanopy.spectra.representative_primaries`); they are treated as
-  non-copyrightable measurements, not a creative adaptation.
+    files are unmodified (value-verbatim). The three per-primary coefficients baked into
+    `melanopy.coeffs` are factual scalars derived jointly from these spectra and Melanopy's own
+    primary model (`melanopy.spectra.representative_primaries`); they are treated as
+    non-copyrightable measurements, not a creative adaptation.
 
 This is the project's good-faith provenance record, not formal legal advice.
 

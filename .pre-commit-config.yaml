@@ -7,6 +7,12 @@ repos:
       - id: ruff-format
   - repo: local
     hooks:
+      - id: mdformat
+        name: mdformat
+        entry: uv run mdformat
+        language: system
+        types: [markdown]
+        exclude: '^manuscript/'
       - id: mypy
         name: mypy
         entry: uv run mypy

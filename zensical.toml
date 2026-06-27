@@ -20,6 +20,7 @@ nav = [
   { "Rating colormaps" = "rating.md" },
   { "The scored index" = "leaderboard.md" },
   { "The Diel family" = "generator.md" },
+  { "Cookbook" = "cookbook.md" },
   { "Validation" = "validation.md" },
   { "Limitations" = "limitations.md" },
   { "API reference" = "reference.md" },

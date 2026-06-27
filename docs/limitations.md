@@ -49,4 +49,4 @@ lighting), not a full PRISMA systematic review. The closest prior art is metamer
 tuning (Allen et al., 2018[^allen]); no precedent was found for a melanopic colormap rater, a
 scored index, or a PU/CVD-constrained melanopic generator.
 
-[^allen]: Allen, A. E. et al. (2018). *Exploiting metamerism to regulate the impact of a visual display on alertness and melatonin suppression independent of visual appearance.*
+\[^allen\]: Allen, A. E. et al. (2018). *Exploiting metamerism to regulate the impact of a visual display on alertness and melatonin suppression independent of visual appearance.*

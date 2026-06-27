@@ -1,0 +1,10 @@
+wrap = "keep"
+number = true
+end_of_line = "lf"
+exclude = [
+  "manuscript/**",
+  "site/**",
+  ".claude/worktrees/**",
+  ".pytest_cache/**",
+  ".venv/**",
+]
