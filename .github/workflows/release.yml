@@ -1,0 +1,30 @@
+name: Release
+
+# Publishes to PyPI when a GitHub Release is published. Uses PyPI Trusted Publishing
+# (OIDC) — no API token. One-time setup on PyPI: add a trusted publisher for project
+# "melanopy", owner "remrama", repo "melanopy", workflow "release.yml", environment "pypi".
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/melanopy
+    permissions:
+      id-token: write # OIDC token for Trusted Publishing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - name: Build sdist + wheel
+        run: uv build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
