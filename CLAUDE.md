@@ -33,6 +33,12 @@ uv run --extra docs zensical build   # build the docs site to site/ (git-ignored
 config in `zensical.toml`, pages in `docs/` (a downstream rendering of the manuscript prose),
 API reference via mkdocstrings, deployed to GitHub Pages by `.github/workflows/docs.yml`.
 
+The manuscript is a self-contained two-column LaTeX article (`manuscript/main.tex`; biblatex +
+biber over `references.bib`, figures from `scripts/build_figures.py`). Build it with the
+`manuscript/Makefile` — pdflatex → biber → pdflatex ×2 — which needs a TeX Live toolchain, not
+`uv` (on Windows, where `make` is absent, run the four passes directly). CI builds it via
+`.github/workflows/manuscript.yml` (using `xu-cheng/latex-action`) and uploads the PDF artifact.
+
 ## Architecture
 
 The package's organizing insight: **the melanopic content of a display colour collapses

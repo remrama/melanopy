@@ -1,0 +1,433 @@
+\documentclass[10pt,a4paper,twocolumn]{article}
+
+% Ignore underfull warnings
+\vbadness=10000
+
+% Page layout
+\setlength{\parindent}{.5cm}
+\setlength{\columnsep}{.5cm}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+% Encodings, characters, and typesetting
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{newtxtext,newtxmath}
+\usepackage{microtype}
+
+\usepackage[hidelinks,implicit=false]{hyperref}
+\usepackage{orcidlink}
+
+% Citation/reference management
+\usepackage[citestyle=numeric-comp,bibstyle=numeric-comp,sorting=none,url=false,doi=false,useprefix=true,uniquename=false,uniquelist=false,giveninits=true,maxnames=2,natbib=true,backend=biber,hyperref=false]{biblatex}
+\usepackage{csquotes}
+\addbibresource{references.bib}
+% \renewbibmacro{in:}{}
+% \renewcommand{\bibopenparen}{\addcomma\addspace}
+% \renewcommand{\bibcloseparen}{\addperiod}
+% \DeclareFieldFormat[article,inbook,incollection,inproceedings,book,misc,unpublished]{title}{#1\isdot}
+% \DeclareNameAlias{default}{family-given}
+% % I have no clue why this works https://tex.stackexchange.com/a/352754
+% \DeclareNameFormat{author}{%
+%     \ifnumequal{\value{uniquename}}{0}
+%     {\usebibmacro{name:family}
+%        {\namepartfamily}
+%        {\namepartgiven}
+%        {\namepartprefix}
+%        {\namepartsuffix}}
+%     {\usebibmacro{name:family-given}
+%        {\namepartfamily}
+%        {\namepartgiven}
+%        {\namepartprefix}
+%        {\namepartsuffix}}%
+%     \usebibmacro{name:andothers}}
+
+% Use comma and space between units
+\renewcommand*{\newunitpunct}{\addcomma\space}
+\AtEveryBibitem{%
+    \clearfield{volume}%
+    \clearfield{number}%
+    \clearfield{pages}%
+}
+
+% Graphics/figures/tables
+\usepackage{makecell}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\graphicspath{{./figures/}}
+\usepackage[font=small,labelfont=bf,labelsep=period,singlelinecheck=false]{caption}
+
+\usepackage{siunitx}
+% \unit{m/s}
+% \unit{\metre\per\second}
+% \unit{\frac{m}{s}}
+% \sisetup{group-digits=integer,group-separator={,},group-minimum-digits={3}}
+% \DeclareSIUnit[quantity-product={}]{\percent}{\%}
+% % see this important post about interaction between datatools and siunitx https://tex.stackexchange.com/a/23460
+% \newcommand{\meansd}[3][2]{%
+%     $\num[round-mode=places,round-precision=#1]{#2} \pm %
+%     \num[round-mode=places,round-precision=#1]{#3}$%
+% }
+
+% % Load data
+% \usepackage{datatool}
+% \DTLsettabseparator
+% \DTLloaddb{totals}{../output/tables/describe-totalcounts.tsv}
+% \DTLassignfirstmatch{totals}{total}{posts}{\totalposts=count}
+
+\title{\bf A melanopic axis for scientific colormaps}
+\author{
+    Remington Mallett~\orcidlink{0000-0001-6183-3098} \\ % chktex 8
+    Department of Psychology \\
+    Northwestern University \\
+    \texttt{remington.mallett@u.northwestern.edu}
+}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Abstract}
+A scientific colormap is crafted to be \emph{read} --- perceptually uniform (equal data steps look equal) and robust to colour-vision deficiency (CVD).
+But on a self-luminous display it is also \emph{light}: a large data-fill emits a substantial fraction of the screen's output, and the short-wavelength, melatonin-suppressing (\textbf{melanopic}) content of that light matters whenever a display is a viewer's dominant light source at night --- sleep laboratories, observatories, neonatal intensive care, overnight radiology, and control rooms.
+\textbf{Melanopy} makes a colormap's melanopic content \emph{measurable}, accounting for perceptual uniformity and CVD-safety alongside it rather than layering on top of them.
+All of a display's dependence collapses into \textbf{three per-primary melanopic/photopic coefficients} derived from the CIE S 026:2018 melanopic action spectrum, reducing the melanopic content of any sRGB colour to a weighted sum of three numbers.
+From these we report two luminance-weighted quantities per map: an \textbf{M/P mean} (where the map sits on the axis, normalized so display white = 1) and an \textbf{M/P spread} (how tightly that ratio sits along the ramp).
+Scoring the colormaps people already use yields three findings: a warm, pure sequential map \emph{already exists} (\texttt{copper}, and our \texttt{sodium}); the popular perceptually-uniform maps are \emph{smeared} (viridis and its siblings dump high-melanopic blue at their dark, low-data end); and the genuine gap is a perceptually-uniform, CVD-safe \textbf{alerting} map.
+We fill it with the \textbf{Circadia family}, a one-parameter generator whose single design dial $\alpha$ walks the axis (measured M/P 0.29 $\rightarrow$ 1.73) while holding perceptual uniformity and CVD-recoverability fixed --- by sharing a single monotone-lightness profile across $\alpha$ and letting it steer only chroma.
+We are explicit about scope: we rate a colour's \emph{chromaticity}, not a light \emph{dose}, and the physiological effect of a colormap alone is second-order.
+The contribution is the measurement, the scored index \emph{and the empirical findings it yields}, the constrained generator, and surfacing a design dimension the field has not named.
+The rater, index, generator, and figures are reproducible from the open-source package.
+
+\bigskip
+\noindent {\bf Keywords:} \emph{colormap}, \emph{melanopic}, \emph{visual perception}, \emph{circadian}, \emph{CVD}, \emph{perceptual uniformity}, \emph{scientific visualization}
+
+\section{Introduction}\label{sec:introduction}
+
+Most guidance on scientific colormaps optimizes how a map is \emph{read}: whether equal differences in the data produce equal perceived differences in colour (\textbf{perceptual uniformity}), and whether that reading survives \textbf{colour-vision deficiency (CVD)}.
+Modern map design is organized around these together with monotone ordering --- the viridis family was built to be uniform and CVD-robust~\cite{smith2015viridis}, cividis optimizes explicitly for CVD~\cite{nunez2018cividis}, Kovesi's CET maps systematize uniformity~\cite{kovesi2015colourmaps}, Moreland's diverging maps solved the midpoint problem for signed data~\cite{moreland2009diverging}, and Crameri's work documents how much colour misuse still distorts science~\cite{crameri2020colour}.
+These are the right priorities for almost every figure.
+
+\par
+But a colormap is also \emph{light}.
+On a self-luminous display a large data-fill --- a spectrogram, a density map, a heat map --- covers a substantial fraction of the screen and therefore emits a substantial fraction of the screen's light.
+When the viewer is in a dark room and the display is their dominant light source, the \emph{spectrum} of that emitted light is not cosmetic: short wavelengths drive the intrinsically photosensitive retinal ganglion cells (ipRGCs) that regulate the circadian system and acutely suppress melatonin~\cite{lucas2014melanopsin,brown2020melanopic}.
+This situation is not exotic.
+Sleep laboratories, observatories, neonatal intensive-care units, overnight radiology reading rooms, and 24-hour control centres all put practitioners in front of data displays at night, deliberately in dim surroundings.
+Our own motivating deployment is SMACC, a sleep/dream-research acquisition tool whose operators watch live EEG spectrograms through the night (Section~\ref{sec:reference-app}).
+In all of these settings the colour content of the large fills can \emph{cooperate with} --- or \emph{fight} --- whatever circadian-lighting strategy the room is running.
+
+\par
+Colormap craft offers no vocabulary for this.
+Where collections add organizing structure, they sort by \emph{structure} itself (Crameri), by \emph{domain} (cmocean~\cite{thyng2016cmocean}), or by \emph{data type} (ColorBrewer~\cite{harrower2003colorbrewer}) --- \textbf{none by circadian or melanopic content.}
+Perceptual uniformity and CVD-safety are, in effect, the two axes the field already navigates; melanopic content is a further design dimension it has not named, and that empty slot is the opening this paper fills.
+
+\par
+The metrology to fill it already exists.
+Quantifying melanopic light is a solved, standardized problem: the CIE S 026:2018 system defines the melanopic action spectrum and the $\alpha$-opic quantities~\cite{cie_s026_2018}, formalizing the framework of Lucas et al.~\cite{lucas2014melanopsin}; melanopic equivalent daylight illuminance predicts circadian responses across a wide range of conditions~\cite{brown2020melanopic}; and validated open implementations exist (luox~\cite{spitschan2021luox}, LuxPy, and Colour).
+Crucially, these tools take \textbf{spectral power distributions} as input.
+They do not answer ``where does viridis sit?'', because a colormap is a list of sRGB triples, not a spectrum. % chktex 38
+We build directly on this metrology rather than reinventing it; our work is the missing adapter from colormaps to the established melanopic measure.
+
+\par
+We contribute: (i) a \textbf{rater} that scores any colormap on a melanopic axis; (ii) a \textbf{scored index} of common colormaps, which empirically settles how much new map design is even needed; (iii) a one-parameter \textbf{generator} that walks the axis while preserving uniformity and CVD-safety; and (iv) a reference \textbf{application} that exposes the parameter as a live control.
+The concept and the index are the headline; the generated maps are a worked example.
+
+\section{The melanopic axis}\label{sec:axis}
+
+\subsection{Axis definition and spectral weighting}\label{sec:axis-definition}
+
+The central conceptual move is to treat melanopic content as a \textbf{design dimension, not a pass/fail rule}.
+Perceptual uniformity and CVD-safety are \emph{universal requirements}: every map should clear them, and a map that fails is simply worse.
+Melanopic content is different. Every map sits \emph{somewhere} on the axis, and ``good/bad'' does not apply --- only \emph{which regime suits which context}:
+
+\begin{itemize}
+    \item \textbf{protective} --- warm, low melanopic ratio (M/P < 1);
+    \item \textbf{alerting} --- cool / blue-rich, high melanopic ratio (M/P > 1),
+\end{itemize}
+
+with \textbf{display white as the unit} (M/P = 1).
+A daytime alertness display and an overnight sleep-lab display want opposite ends of the same axis; neither end is ``correct'' in the abstract.
+
+\par
+\textbf{The area-weighted melanopic budget.} Why does the axis matter for some marks and not others?
+Because emitted light scales with screen area. Large fills --- spectrograms, density maps, heat maps --- cover a big fraction of the display and dominate the light it emits, so the axis matters for them.
+Small categorical marks --- lines, points, glyphs --- emit negligibly regardless of their colour, so for them the axis is effectively \emph{``ignore it''}: a single CVD-safe categorical palette serves every circadian regime.
+This split is a design principle, not a limitation: it tells us to spend the melanopic budget on \emph{sequential fills} and to keep categorical colour a separate, fixed concern.
+(Melanopy ships exactly one CVD-safe categorical palette, justified by this argument; it stays well-separated under simulated colour blindness, Fig.~\ref{fig:melanopic-colormaps}.)
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{melanopic_colormaps.png}
+    \caption{The area-weighted budget in practice. \emph{Top:} the protective endpoint Sodium under simulated dichromacy stays order-preserving --- lightness does the ordering work. \emph{Middle/bottom:} the single CVD-safe categorical palette stays well-separated under colour blindness, so one palette serves every circadian regime.}\label{fig:melanopic-colormaps} % chktex 12
+\end{figure}
+
+\par
+\textbf{The spectral weighting (CIE S 026).} The melanopic content of light is a standardized quantity, and we adopt the standard rather than approximate it.
+Each spectrum is weighted by the CIE S 026:2018 melanopic action spectrum together with the CIE 1931 $2^{\circ}$ $V(\lambda)$ photopic function, both vendored from the source tables; the ratio of the two integrals is the melanopic/photopic (M/P) ratio that defines the axis.
+The melanopic response peaks at \textbf{490 nm} as expected, and display gray stays pinned at \textbf{1.000} (Fig.~\ref{fig:s026-validation}).
+This is the same weighting the validated luox calculator~\cite{spitschan2021luox} is built on, and we confirm our implementation against it: Melanopy's spectral engine reproduces the CIE S 026 D65 melanopic ELR normalization constant --- the quantity luox is pinned to --- to five significant figures (1.32621 vs 1.3262 mW/lm), and yields the expected melanopic daylight-efficacy ratios (mel-DER) for the standard illuminants (D65 = 1.000 by definition, equal-energy = 0.906, Illuminant A = 0.496).
+Method and a luox-uploadable spectrum set are in the companion \texttt{luox-crosscheck.md}.
+The baked coefficients of Section~\ref{sec:rating-algorithm} are regression-locked to this spectrum, so the data and the numbers cannot silently drift apart.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{s026_validation.png}
+    \caption{CIE S 026 validation: the melanopic action spectrum (peak 490 nm), display gray pinned at 1.000, and the leaderboard ranking unchanged (every map moved $\leq 0.035$) when an earlier analytic template is replaced by the validated spectrum.}\label{fig:s026-validation}
+\end{figure}
+
+\subsection{Operationalizing the axis: the rating algorithm}\label{sec:rating-algorithm}
+
+The rater turns a colormap into numbers on the melanopic axis.
+For each colour in the map:
+
+{\small
+\begin{align*}
+\text{sRGB} \rightarrow{}& \text{linearize} \\
+\rightarrow{}& \text{SPD} = r P_R + g P_G + b P_B \\
+\rightarrow{}& Y \ (\text{photopic luminance, exact sRGB weights}) \\
+\rightarrow{}& M \ (\textstyle\int \text{SPD} \cdot s_{\mathrm{mel}}, \ \text{CIE S\,026}) \\
+\rightarrow{}& \text{M/P, normalized so display white} = 1
+\end{align*}
+}
+
+The pipeline's organizing insight is that, because a display's primaries $P_R, P_G, P_B$ are fixed, the melanopic content of any colour collapses to a weighted sum of \textbf{three per-primary coefficients} --- the melanopic/photopic ratio of each RGB primary.
+For the representative panel:
+
+\begin{center}
+    \begin{tabular}{lc}
+        \toprule
+        primary & coefficient (M/P) \\
+        \midrule
+        R & 0.0031 \\
+        G & 0.6555 \\
+        B & 10.9681 \\
+        \bottomrule
+    \end{tabular}
+\end{center}
+
+The blue primary does almost all of the melanopic work, which is precisely why the axis is mostly a warm $\leftrightarrow$ cool story, and why the warm/cool spread asymmetry of Section~\ref{sec:circadia} is fundamental rather than incidental.
+These three numbers are the entire display-dependent part of the model.
+
+\par
+\textbf{Two metrics: where the map sits, and how tightly.}
+Both reported quantities are \textbf{luminance-weighted}, and near-black pixels (which emit almost nothing) are dropped --- a pipeline-level decision so that neither number is dominated by the dark end of the ramp.
+A single mean still hides the structure that matters, so the rater reports \textbf{two distinct quantities} (plus the raw per-position range):
+
+\begin{itemize}
+    \item \textbf{M/P mean} --- \emph{where} the map sits: the mean of the per-position ratio (display white = 1; < 1 protective, > 1 alerting).
+    \item \textbf{M/P spread ($\sigma$)} --- \emph{how tightly} it sits: the spread of the per-position ratio along the ramp.
+        A tight spread reads as a ``pure'' ramp.
+\end{itemize}
+
+These two are the axis's \emph{measured outputs} --- distinct from the generator's \emph{input} dial introduced in Section~\ref{sec:circadia}.
+They are also independent of each other, and the gap between them is the point.
+viridis sits mid-axis (M/P 0.83 --- mildly protective on \emph{average}) yet has a high spread ($\sigma$ 0.56): it dumps high-melanopic blue at its dark, low-data end, so it is \emph{smeared}, not tight.
+A protective mean and a pure ramp are different properties, and a map can have one without the other.
+(Concretely, \texttt{rate\_colormap(viridis)} returns \texttt{melanopic\_ratio = 0.834}, \texttt{mp\_spread = 0.556}, \texttt{range = (0.395, 3.069)}.) % chktex 36
+
+\par
+\textbf{Display-panel dependence.}
+Melanopic content depends on the display's primary spectra, which sRGB does \textbf{not} fix.
+The rater therefore takes a \texttt{panel} argument selecting among representative archetypes --- narrowband RGB (default), blue-pump white-LED LCD, OLED, and quantum-dot wide-gamut.
+Absolute M/P shifts with the panel (the blue coefficient ranges $\approx 8.8$ for OLED to $\approx 13.7$ for wide-gamut), but the \textbf{ranking is robust} to it (Section~\ref{sec:existing-colormaps}).
+For exact numbers on a specific monitor, a user plugs that monitor's measured primary SPDs into \texttt{melanopy.spectra.coefficients\_from\_primaries} and obtains its own three coefficients --- swapping panels means swapping just those three numbers.
+
+\subsection{The axis applied to existing colormaps}\label{sec:existing-colormaps}
+
+A rater invites an obvious empirical question --- \emph{where do the colormaps people already use actually land?} --- and answering it decides how much new design is needed at all.
+We scored a representative set on the default panel (display white = 1; regenerable from the package):
+
+\begin{table*}[t]
+    \centering
+    \caption{The melanopic leaderboard: a representative set of colormaps scored on the default panel (display white = 1), with M/P mean, M/P spread ($\sigma$), and regime.}\label{tab:leaderboard}
+    \begin{tabular}{lccl}
+        \toprule
+        colormap & M/P & $\sigma$ (spread) & regime \\
+        \midrule
+        \textbf{sodium} (Melanopy) & 0.29 & 0.07 & protective, pure \\
+        copper & 0.49 & 0.03 & protective, pure \\
+        inferno & 0.50 & 0.45 & mid, smeared \\
+        cividis & 0.72 & 0.44 & mid, smeared \\
+        viridis & 0.83 & 0.56 & mid, smeared \\
+        \textbf{equilux} (Melanopy) & 1.00 & 0.16 & neutral \\
+        gray & 1.00 & 0.00 & neutral \\
+        Blues & 1.33 & 0.40 & alerting \\
+        \textbf{xenon} (Melanopy) & 1.73 & 0.42 & alerting, $\approx$PU/CVD \\
+        cool & 2.06 & 0.58 & alerting, not PU \\
+        \bottomrule
+    \end{tabular}
+\end{table*}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{melanopic_leaderboard.png}
+    \caption{The melanopic leaderboard: common colormaps placed on the axis (display white = 1), with per-map M/P mean and M/P spread; per-panel bands show robustness to the display archetype.}\label{fig:melanopic-leaderboard}
+\end{figure}
+
+Three findings fall out:
+
+\begin{enumerate}
+    \item \textbf{A protective, pure map already exists.} \texttt{copper} (M/P 0.49, $\sigma$ 0.03) and our \texttt{sodium} (0.29, $\sigma$ 0.07) sit both low \emph{and} flat --- a warm, pure sequential map has been hiding in matplotlib all along.
+        No new design is needed at the protective end; it needs only to be \emph{named and surfaced}.
+    \item \textbf{The popular uniform maps are smeared.} viridis, magma, inferno, cividis, and plasma sit mid-axis but dump high-melanopic blue at their dark (low-data) end --- none is tight ($\sigma \approx 0.4$--$0.6$).
+        Choosing one of these ``for safety'' at night does not buy a low melanopic load; it buys a \emph{mixed} one.
+    \item \textbf{The genuine gap is a pure alerting map.} The maps that reach the alerting end --- \texttt{cool}, \texttt{winter}, \texttt{Blues} --- are either not perceptually uniform or single-hue.
+        A perceptually-uniform, CVD-safe \emph{alerting} map does not exist off the shelf.
+        That is the one slot worth generating, and it motivates the Circadia family's Xenon endpoint (Section~\ref{sec:circadia}).
+\end{enumerate}
+
+\par
+\textbf{Robustness to the display panel and the spectrum.}
+The single biggest threat to a rater like this is that its conclusions might be an artifact of one assumed display.
+We therefore re-scored every map under all four panel archetypes.
+Absolute M/P \textbf{is} panel-dependent (driven by the blue coefficient's $\approx 8.8$--$13.7$ range), but the \textbf{ranking is not}: Spearman $\rho \geq 0.99$ against the representative panel, with display white pinned at exactly 1.0 on every panel and the widest single-map band being the saturated \texttt{cool} ($\approx 0.32$ across panels).
+The ranking is equally insensitive to the \emph{spectral} choice: replacing an earlier analytic action-spectrum template with the validated CIE S 026 spectrum (Section~\ref{sec:axis-definition}) moved every map by $\leq 0.035$ and left the order intact (Fig.~\ref{fig:s026-validation}).
+So \emph{where a map sits on the axis} is a property one can trust without knowing the exact monitor or the fine detail of the action spectrum --- which is what makes the index, not just a single measurement, worth publishing.
+
+\section{The Circadia family: a uniformity-preserving generator}\label{sec:circadia}
+
+The leaderboard says the protective end is already covered but the alerting end is not.
+The \textbf{Circadia family} (\texttt{mp.circadia(alpha)}) is a one-parameter generator built to walk the whole axis without surrendering uniformity or CVD-safety at any point along it. % chktex 36
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{circadian_generator.png}
+    \caption{The Circadia family swept across $\alpha$ from the protective endpoint Sodium ($\alpha = 0$) through the neutral Equilux ($\alpha \approx 0.55$) to the alerting Xenon ($\alpha = 1$). Lightness rises identically for every $\alpha$; only the chroma path changes.}\label{fig:circadian-generator}
+\end{figure}
+
+\par
+\textbf{The dial and the measurement are different things.}
+The family's single design parameter is $\alpha \in [0, 1]$, a dimensionless dial we call the \textbf{melanopic temperature}: 0 is protective (warm), 1 is alerting (cool).
+$\alpha$ is an \emph{input} --- a geometric position on an OKLab morph (below) --- not a melanopic measurement.
+What the rater reports, the \textbf{M/P mean} and \textbf{M/P spread} of Section~\ref{sec:rating-algorithm}, are \emph{outputs} measured from the rendered colours.
+For the Circadia family the M/P mean is an emergent, monotone function of $\alpha$ (measured 0.29 $\rightarrow$ 1.73 on the default panel), so turning the dial does move a map along the axis --- but the two are not the same quantity.
+$\alpha$ is dimensionless and panel-independent; the M/P mean is a measured optical ratio that shifts with the display.
+And the M/P spread is orthogonal to $\alpha$ altogether: the dial sets \emph{where} a map sits, not \emph{how tightly}, and the warm/cool asymmetry below shows the spread is governed by the gamut, not the knob.
+In short, \textbf{$\alpha$ is what you set; M/P mean and M/P spread are what you measure.}
+
+\begin{table*}[t]
+    \centering
+    \caption{The Circadia anchors: the dial position $\alpha$, the measured M/P on the default panel, and the character of each.}\label{tab:anchors}
+    \begin{tabular}{lccl}
+        \toprule
+        anchor & $\alpha$ & M/P (measured) & character \\
+        \midrule
+        \textbf{Sodium} & 0.00 & 0.29 & warm, protective, pure \\
+        \textbf{Equilux} & 0.55 & $\approx 1.00$ & neutral (M/P = 1 crossover, true $\alpha \approx 0.5505$) \\
+        \textbf{Xenon} & 1.00 & 1.73 & cool, alerting \\
+        \bottomrule
+    \end{tabular}
+\end{table*}
+
+The anchors carry evocative names while the measured quantities keep the precise optical term: \textbf{Sodium}, \textbf{Equilux}, and \textbf{Xenon} name points on the dial; \textbf{M/P mean} and \textbf{M/P spread} name what is measured there --- motivation for what is designed, precision for what is reported.
+
+\par
+\textbf{Why uniformity comes for free.}
+The generator is pure OKLab geometry~\cite{ottosson2020oklab}; it never looks at the melanopic coefficients of Section~\ref{sec:rating-algorithm}.
+The trick is a \textbf{single monotone-lightness profile shared by every $\alpha$}.
+Lightness (the L of OKLab) increases identically along the ramp for all $\alpha$, and $\alpha$ morphs \emph{only the chroma vector} --- rotating the warm hue path at $\alpha = 0$ to the cool hue path at $\alpha = 1$, with a gamut clamp that reduces chroma (preserving L and hue) wherever a colour would leave sRGB.
+Because lightness does all of the structural work and $\alpha$ only steers chroma, perceptual uniformity and CVD-recoverability hold for \emph{every} $\alpha$, and the \textbf{melanopic ratio is an emergent, monotone function of $\alpha$} (0.29 $\rightarrow$ 1.73) that the generator never computes.
+The axis falls out of the geometry; it is not imposed on it.
+
+\par
+\textbf{Both properties are verified, not assumed.}
+The generator's structural claims are checked numerically with \texttt{colorspacious}.
+For perceptual uniformity, the CAM02-UCS lightness ($J'$) is strictly increasing along each Circadia map and the CAM02-UCS step sizes are near-constant (coefficient of variation < 0.30).
+For CVD, under simulated deuteranopia, protanopia, and tritanopia (Machado et al.\ model~\cite{machado2009cvd}, severity 100) the perceived lightness stays strictly monotone, so the data order remains recoverable.
+We deliberately say \textbf{CVD-recoverable}, not the stronger ``CVD-safe'': a shared monotone-lightness profile guarantees recoverable \emph{order}, which is exactly what the tests show and exactly what we claim.
+The melanopic span is equally robust to the spectral choice: under the validated CIE S 026 spectrum (Section~\ref{sec:axis-definition}) the generator's range is unchanged (0.29 $\rightarrow$ 1.73) and still monotone.
+
+\par
+\textbf{A fundamental warm/cool asymmetry.}
+Sodium sits far tighter on the axis than Xenon (M/P spread $\sigma$ 0.07 vs 0.42), and this is a property of the display gamut, not a tuning miss.
+Short-wavelength primaries are intrinsically low-luminance, so \emph{a light, saturated blue does not exist} --- light cool colours must desaturate toward white, where M/P $\rightarrow$ 1.
+A perfectly pure \emph{protective} map is therefore achievable under a shared lightness profile, but a perfectly pure \emph{alerting} one is not.
+This is a statement about the intersection of the melanopic axis with the sRGB gamut, and we report it rather than hide it (Section~\ref{sec:limitations}).
+
+\section{Discussion}\label{sec:discussion}
+
+The axis, the index, and the generator are only useful if they change practice without overclaiming.
+This section closes the loop: how the generator's dial behaves as a live control (Section~\ref{sec:reference-app}), what Melanopy deliberately does \emph{not} assert (Section~\ref{sec:limitations}), and how the contribution sits against three mature literatures (Section~\ref{sec:related-work}).
+
+\subsection{Reference application: an in-app circadian slider}\label{sec:reference-app}
+
+The generator's $\alpha$ is most useful as a \emph{live control}.
+SMACC (a PyQt6 + pyqtgraph sleep/dream research tool) is our reference deployment: $\alpha$ is exposed as a toolbar slider so the screen's colour temperature can be moved along the melanopic axis during an overnight session without leaving the app.
+
+\par
+\textbf{What $\alpha$ controls.}
+It drives the active scientific colormap for large-fill views --- the EEG spectrogram, hypnogram density, scalp/topographic maps --- where the melanopic budget is non-trivial.
+Optionally it also drives the UI accent tokens, so chrome and data move together.
+Categorical line/scatter views need \emph{not} react: the area-weighted budget (Section~\ref{sec:axis-definition}) says their emission is negligible.
+Bindings can be manual (raw $\alpha$, or labelled presets \emph{Protective / Neutral / Alerting}), scheduled by the clock (an automatic warm-down across the night), driven by an ambient-light sensor or an ``I'm fading'' button, or coupled to the app's theme mode.
+
+\par
+\textbf{Why in-app, not a global filter.}
+This is the core justification and a paper-worthy point.
+A global gamma/LUT warp such as f.lux or OS Night Shift tints the entire framebuffer \emph{data-blind} and non-uniformly, which \textbf{breaks perceptual uniformity and CVD-safety} for every figure on screen --- and, empirically, a spectral shift without dimming does not reliably reduce melatonin suppression anyway~\cite{nagare2019nightshift}.
+Doing the adjustment at the \emph{data $\rightarrow$ colour} step instead preserves uniformity and CVD-safety by construction, touches only the analysis canvas (never a participant-facing display), and lets one dial drive plots and chrome coherently.
+
+\par
+\textbf{Honesty surfaced in the UI itself.}
+The slider changes \emph{appearance} and how the screen \emph{participates in} the room's circadian strategy; it is \textbf{not} an alertness dial.
+The interface pairs it with brightness and room-light guidance, restating the governing truth: if the goal is genuinely to stay awake, light the room --- the colormap is a second-order, mostly non-interference lever.
+
+\par
+\textbf{Implementation.}
+A small lookup table of $\alpha$ steps is precomputed at startup (or the 256$\times$3 sRGB array is regenerated on demand, a sub-millisecond cost), wrapped as a \texttt{pyqtgraph.ColorMap} and applied to the relevant \texttt{ImageItem}/\texttt{PlotItem} LUTs; the slider is debounced to recolor only, never to recompute the data.
+$\alpha$ persists in the session config, with an optional schedule table ($\alpha$ vs.\ clock time).
+
+\subsection{Limitations and honest scope}\label{sec:limitations}
+
+Melanopy's credibility \emph{is} its contribution, so the caveats are stated plainly rather than buried.
+
+\begin{itemize}
+    \item \textbf{It rates chromaticity, not dose.} We report a colour property, never a light dose or an alertness effect.
+        Actual circadian load is roughly screen luminance $\times$ fraction of screen filled $\times$ viewing distance $\times$ ambient light --- none of which a colormap fixes.
+        If the goal is genuinely to stay alert, the dominant lever is room lighting.
+    \item \textbf{Display-primary dependence.} The three coefficients assume a representative panel; real white-LED-LCD, OLED, and wide-gamut displays differ, especially in blue.
+        We ship several panel archetypes and let users plug in measured SPDs.
+        S 026 validates the \emph{spectral weighting}; the \emph{panel model} is orthogonal and still approximate.
+        Reassuringly, the ranking is robust across panels (Section~\ref{sec:existing-colormaps}).
+    \item \textbf{The warm/cool spread asymmetry is fundamental.} A perfectly pure protective map is achievable; a perfectly pure alerting one is not, because light saturated blues do not exist in the gamut (Section~\ref{sec:circadia}).
+        This is a property of the axis $\cap$ the display gamut, not a defect to be tuned away.
+    \item \textbf{``CVD-recoverable'', not ``CVD-safe''.} A shared monotone-lightness profile makes \emph{order} recoverable under CVD; we verify that and claim exactly that, no more.
+    \item \textbf{The physiological effect is second-order.} The dominant levers are screen brightness, UI background, and room light.
+        Melanopy's worth is (a) measurability, (b) the tool and index, (c) surfacing the axis, and (d) a modest \emph{non-interference} claim --- letting large fills cooperate with whatever circadian strategy the room already runs.
+    \item \textbf{Prior-art scope.} The novelty claim rests on a structured related-work pass across three literatures (Section~\ref{sec:related-work}), documented separately, not a full PRISMA systematic review.
+\end{itemize}
+
+\subsection{Related work and novelty}\label{sec:related-work}
+
+Three mature fields border this work, and the contribution sits in the gap between them.
+(1) \textbf{Melanopic metrology:} CIE S 026~\cite{cie_s026_2018} and validated calculators~\cite{spitschan2021luox} on the $\alpha$-opic framework of Lucas et al.~\cite{lucas2014melanopsin}, with melanopic EDI predicting circadian responses~\cite{brown2020melanopic} --- all operating on SPDs, not colormaps.
+(2) \textbf{Colormap craft:} perceptual uniformity, ordering, and CVD-safety~\cite{smith2015viridis,nunez2018cividis,kovesi2015colourmaps,moreland2009diverging,crameri2020colour}, with collections organized by structure, domain, or data type~\cite{thyng2016cmocean,harrower2003colorbrewer} --- none by melanopic content.
+(3) \textbf{Lighting-domain melanopic modulation}, where the axis idea actually lives, but for lamps and display \emph{hardware}: metameric display tuning that varies melanopic output independent of visual appearance~\cite{allen2018metamerism} (the closest prior art --- a 5-primary VDU for melatonin/alertness experiments, \emph{not} a colormap tool), and OS night-shift filters~\cite{nagare2019nightshift}.
+
+\par
+The melanopic axis itself is therefore \emph{not} novel --- it is mature in lighting.
+\textbf{What is novel is the port to scientific colormaps as four specific artifacts:} a melanopic \emph{rater for colormaps}, a \emph{per-data-position} melanopic profile, a \emph{scored index} of existing scientific maps, and a \emph{perceptual-uniformity- and CVD-constrained generator} parameterized by melanopic content.
+We searched the three literatures above and found no precedent for any of the four --- a defensible related-work pass (English-only, without a patent-database sweep), not an exhaustive systematic review.
+
+\section*{Declarations}
+
+\textbf{Availability of materials.}
+All code used to generate and analyze the current corpus is publicly available on GitHub\footnote{https://github.com/remrama/melanopy}.
+
+\smallskip
+\noindent
+\textbf{Acknowledgements.}
+RM would like to thank Claudia Picard-Deland.
+
+\smallskip
+\noindent
+\textbf{Conflict of interest.} None declared.
+
+\raggedbottom
+\printbibliography
+
+\end{document}
