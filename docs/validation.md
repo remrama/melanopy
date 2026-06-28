@@ -21,13 +21,21 @@ Swapping the prototype's analytic template for the validated S 026 spectrum:
 The baked per-primary coefficients are regression-locked to this spectrum
 (`tests/test_coeffs.py`), so the data and the numbers can't silently drift apart.
 
+**External cross-check against luox.** The melanopic weighting is *borrowed* — so it had better
+reproduce the standard. melanopy's spectral engine recovers the CIE S 026 D65 melanopic ELR
+normalization constant — the quantity the validated [luox](https://luox.app) calculator is built
+on — to five significant figures (1.32621 vs 1.3262 mW/lm), and returns the expected melanopic
+daylight-efficacy ratios for the standard illuminants (D65 = 1.000 by definition, equal-energy =
+0.906, Illuminant A = 0.496). Method and a luox-uploadable spectrum set are in the companion
+[`luox_crosscheck.md`](https://github.com/remrama/melanopy/blob/main/manuscript/luox_crosscheck.md).
+
 ## 2. Perceptual uniformity and CVD-safety
 
 The generator's structural claims are checked with `colorspacious` in
 `tests/test_perceptual.py`:
 
 - **Perceptual uniformity** — the CAM02-UCS lightness (J′) is strictly increasing along each
-    Diel map, and the CAM02-UCS step sizes are near-constant (coefficient of variation < 0.30).
+    Circadia map, and the CAM02-UCS step sizes are near-constant (coefficient of variation < 0.30).
 - **CVD order-recoverability** — under simulated deuteranopia, protanopia, and tritanopia
     (Machado 2009, severity 100), the perceived lightness stays strictly monotonic, so the data
     order is still recoverable.

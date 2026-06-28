@@ -1,6 +1,6 @@
-"""Quantitative perceptual-uniformity and CVD checks for the Diel family.
+"""Quantitative perceptual-uniformity and CVD checks for the Circadia family.
 
-Every Diel map is built on one monotone-lightness OKLab profile. These tests verify the two
+Every Circadia map is built on one monotone-lightness OKLab profile. These tests verify the two
 properties that claim rests on, in an *independent* perceptual space — CAM02-UCS via
 colorspacious (the space viscm uses), which also supplies the Machado (2009) CVD model — so
 the check is not circular with the OKLab construction.
@@ -31,7 +31,7 @@ def _ucs(rgb):
 
 @pytest.mark.parametrize("alpha", ALPHAS)
 def test_perceptual_uniformity(alpha):
-    u = _ucs(mp.diel(alpha))
+    u = _ucs(mp.circadia(alpha))
     steps = np.linalg.norm(np.diff(u, axis=0), axis=1)
     assert np.all(np.diff(u[:, 0]) > 0)  # lightness strictly increasing (monotone profile)
     assert steps.std() / steps.mean() < 0.30  # near-uniform steps (~0.16-0.26 CoV in practice)
@@ -41,6 +41,6 @@ def test_perceptual_uniformity(alpha):
 @pytest.mark.parametrize("cvd_type", CVD_TYPES)
 def test_order_recoverable_under_cvd(cvd_type, alpha):
     space = {"name": "sRGB1+CVD", "cvd_type": cvd_type, "severity": 100}
-    sim = cs.cspace_convert(np.clip(mp.diel(alpha), 0.0, 1.0), space, "sRGB1")
+    sim = cs.cspace_convert(np.clip(mp.circadia(alpha), 0.0, 1.0), space, "sRGB1")
     lightness = _ucs(sim)[:, 0]
     assert np.all(np.diff(lightness) > 0)  # ordering survives the CVD simulation

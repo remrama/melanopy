@@ -7,8 +7,8 @@ import melanopy as mp
 
 
 @pytest.mark.parametrize("alpha", [0.0, 0.3, 0.55, 0.8, 1.0])
-def test_diel_stays_in_gamut(alpha):
-    rgb = mp.diel(alpha)
+def test_circadia_stays_in_gamut(alpha):
+    rgb = mp.circadia(alpha)
     assert rgb.shape == (256, 3)
     assert rgb.min() >= 0.0 and rgb.max() <= 1.0  # chroma clamp keeps it in sRGB
 
@@ -17,8 +17,19 @@ def test_rate_colormap_handles_near_black():
     ramp = np.linspace(0.0, 0.02, 256)[:, None].repeat(3, 1)  # emits ~nothing, includes black
     s = mp.rate_colormap(ramp)
     assert np.isfinite(s["melanopic_ratio"])
-    assert np.isfinite(s["purity_sigma"])
+    assert np.isfinite(s["mp_spread"])
     assert all(np.isfinite(v) for v in s["range"])
+
+
+def test_rate_colormap_profile_opt_in():
+    ramp = np.linspace(0.0, 1.0, 256)[:, None].repeat(3, 1)  # grey ramp
+    base = mp.rate_colormap(ramp)
+    full = mp.rate_colormap(ramp, profile=True)
+    assert set(base) <= set(full)  # summary keys preserved; profile only adds keys
+    for k in ("positions", "ratios", "luminance"):
+        assert full[k].shape == (256,)
+    assert full["positions"][0] == 0.0 and full["positions"][-1] == 1.0
+    assert np.all(np.diff(full["luminance"]) >= 0)  # grey ramp -> luminance rises monotonically
 
 
 def test_unknown_panel_raises():

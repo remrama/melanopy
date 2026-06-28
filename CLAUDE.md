@@ -56,10 +56,12 @@ The dependency flow is a one-way pipeline — understand this before editing:
     ranking is stable across panels (Spearman ρ ≥ 0.99; `scripts/build_panel_robustness.py`).
 3. **`rater.py`** — consumes `coeffs.py`. `melanopic_ratio(rgb)` normalizes so display
     white = 1.0 (\<1 protective/warm, >1 alerting/cool). `rate_colormap(colors)` returns two
-    distinct metrics: `melanopic_ratio` (*where* the map sits on the axis, luminance-weighted
-    mean) and `purity_sigma` (*how tightly* it sits — luminance-weighted spread; a map can be
-    protective on average yet smeared). sRGB is linearized before weighting.
-4. **`generator.py`** — the "Diel family". Independent of `coeffs.py`: it is pure OKLab
+    distinct metrics: `melanopic_ratio` (the M/P mean — *where* the map sits on the axis,
+    luminance-weighted mean) and `mp_spread` (*how tightly* it sits — luminance-weighted spread;
+    a map can be protective on average yet smeared). Both are luminance-weighted; sRGB is
+    linearized before weighting. Pass `profile=True` for the per-position `positions`/`ratios`/
+    `luminance` arrays behind those numbers.
+4. **`generator.py`** — the "Circadia family". Independent of `coeffs.py`: it is pure OKLab
     geometry. One shared monotonic lightness profile (`_L` over `_POS`) is used for every
     `alpha`, so the ramp stays near-uniform and order-recoverable under CVD (both verified
     numerically in `tests/test_perceptual.py`, not merely asserted); `alpha` in [0, 1]

@@ -1,4 +1,4 @@
-colormap,melanopic_ratio,purity_sigma,range_min,range_max
+colormap,melanopic_ratio,mp_spread,range_min,range_max
 sodium (melanopy),0.2882,0.0675,0.1416,0.3705
 hot,0.4382,0.247,0.0025,1.0
 copper,0.4859,0.0278,0.4562,0.6319

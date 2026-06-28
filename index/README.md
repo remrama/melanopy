@@ -4,16 +4,16 @@ Popular colormaps scored on the melanopic axis (display white = 1.0).
 
 ## `leaderboard.csv`
 
-| column            | meaning                                                                          |
-| ----------------- | -------------------------------------------------------------------------------- |
-| `melanopic_ratio` | axis position; **< 1 protective** (warm), **> 1 alerting** (cool)                |
-| `purity_sigma`    | luminance-weighted spread of per-position ratio; **lower = more circadian-pure** |
-| `range_min/max`   | min/max per-position ratio over the (emitting) ramp                              |
+| column            | meaning                                                                                               |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
+| `melanopic_ratio` | M/P mean — axis position; **< 1 protective** (warm), **> 1 alerting** (cool)                          |
+| `mp_spread`       | M/P spread (σ) — luminance-weighted spread of per-position ratio; **lower = tighter (a "pure" ramp)** |
+| `range_min/max`   | min/max per-position ratio over the (emitting) ramp                                                   |
 
 Regenerate from the shipped package with `uv run scripts/build_leaderboard.py` (which calls
 `melanopy.rate_colormap`). Scores use the representative-panel coefficients.
 
-Key reads: warm/single-hue maps (Sodium, copper) are protective **and** circadian-pure;
+Key reads: warm/single-hue maps (Sodium, copper) are protective **and** pure (tight spread);
 the viridis family sits mid-axis but *smeared* (high σ — blue concentrated at the dark
 end); cool maps reach the alerting end but most aren't perceptually uniform. Xenon fills
 the perceptually-uniform, CVD-safe, alerting slot.

@@ -3,12 +3,16 @@
 **A melanopic (circadian) axis for scientific colormaps.**
 
 Scientific colormaps are usually judged on two axes: **perceptual uniformity** and
-**colour-vision-deficiency (CVD) safety**. Melanopy adds a third — how much
-short-wavelength, **melanopic** (melatonin-suppressing) light a map emits — and makes it:
+**colour-vision-deficiency (CVD) safety**. Melanopy adds a third — how much short-wavelength,
+**melanopic** (melatonin-suppressing) light a map emits. Unlike the other two, this one is a
+**design dimension you choose by context, not a pass/fail gate**: a sleep lab wants the protective
+end of the axis, a daytime alerting display the other. Melanopy makes it:
 
 - **measurable** — a [rater](rating.md) that scores any colormap on the axis (display white = 1.0);
-- **surveyed** — a [scored index](leaderboard.md) of the colormaps people already use;
-- **generatable** — the [Diel family](generator.md), a one-parameter ramp that walks the axis
+- **surveyed** — a [scored index](leaderboard.md) that, applied to the maps people already use,
+    reveals that a protective, pure map *already exists* (`copper`), the popular uniform maps are
+    *smeared*, and the real gap is a uniform, CVD-safe *alerting* map;
+- **generatable** — the [Circadia family](circadia.md), a one-parameter ramp that walks the axis
     while holding uniformity and CVD-safety fixed.
 
 For people who read screens as their main light source at night — sleep labs, observatories,
@@ -41,26 +45,38 @@ import melanopy as mp
 # Score any colormap on the melanopic axis (display white = 1.0)
 c = plt.get_cmap("viridis")(np.linspace(0, 1, 256))[:, :3]
 print(mp.rate_colormap(c))
-# {'melanopic_ratio': 0.834, 'purity_sigma': 0.556, 'range': (0.395, 3.069)}
+# {'melanopic_ratio': 0.834, 'mp_spread': 0.556, 'range': (0.395, 3.069)}
 
-# Use the named endpoints (registered with matplotlib)
+# Use the named endpoints (registered with matplotlib) on any 2-D field Z
 mp.register()
+Z = np.add.outer(np.linspace(0, 1, 200), np.linspace(0, 1, 200))
 plt.imshow(Z, cmap="sodium")     # protective: warm, low-melanopic
 plt.imshow(Z, cmap="xenon")   # alerting:   cool, high-melanopic
 plt.imshow(Z, cmap="equilux")   # circadian-neutral (M/P ~ 1)
 
 # Dial the whole axis: alpha 0 (protective) .. 1 (alerting)
-cmap = mp.diel(0.3, as_cmap=True)
+cmap = mp.circadia(0.3, as_cmap=True)
 ```
 
 `melanopic_ratio` **< 1 → protective** (warm); **> 1 → alerting** (cool/blue).
 
+## Scope & novelty
+
+**Borrowed** — the melanopic *metrology*: the CIE S 026 melanopic action spectrum and V(λ),
+validated against the [luox](https://luox.app) reference calculator (melanopy's weighting
+reproduces the CIE S 026 D65 constant to five significant figures — see [Validation](validation.md)).
+
+**New** — the *port to colormaps*: the per-display **three-coefficient collapse** (any sRGB colour →
+a weighted sum of three per-primary M/P numbers, so no runtime spectral integration); the **mean +
+spread** decomposition that catches "smeared" maps; and the **constraint-preserving generator** in
+which melanopic content is *emergent*, never optimized.
+
 ## The two metrics
 
-| metric                    | what it tells you                                                              |
-| ------------------------- | ------------------------------------------------------------------------------ |
-| **melanopic ratio (M/P)** | *where* a map sits on the axis (display white = 1)                             |
-| **circadian purity (σ)**  | *how tightly* it sits — luminance-weighted spread; lower = more circadian-pure |
+| metric                           | what it tells you                                             |
+| -------------------------------- | ------------------------------------------------------------- |
+| **M/P mean** (`melanopic_ratio`) | *where* a map sits on the axis (display white = 1)            |
+| **M/P spread (σ)** (`mp_spread`) | *how tightly* it sits — a tight spread reads as a "pure" ramp |
 
 A map can be mildly protective on average yet *smeared* (viridis dumps blue at its dark end);
 the two numbers tell that apart. See [Rating colormaps](rating.md).
@@ -81,13 +97,13 @@ the two numbers tell that apart. See [Rating colormaps](rating.md).
 
     How common maps rank — and the gap that Xenon fills.
 
-- **[The Diel family](generator.md)**
+- **[The Circadia family](circadia.md)**
 
     The one-parameter, uniformity-preserving generator.
 
 - **[Validation](validation.md)**
 
-    CIE S 026, perceptual uniformity, and CVD — verified numerically.
+    CIE S 026, the luox cross-check, perceptual uniformity, and CVD — verified numerically.
 
 - **[API reference](reference.md)**
 

@@ -23,7 +23,7 @@ BUILTINS = [
 ]  # fmt: skip
 N = 256
 _T = np.linspace(0, 1, N)
-FIELDS = ["colormap", "melanopic_ratio", "purity_sigma", "range_min", "range_max"]
+FIELDS = ["colormap", "melanopic_ratio", "mp_spread", "range_min", "range_max"]
 
 
 def _samples():
@@ -41,7 +41,7 @@ def _row(name, colors):
     return {
         "colormap": name,
         "melanopic_ratio": round(s["melanopic_ratio"], 4),
-        "purity_sigma": round(s["purity_sigma"], 4),
+        "mp_spread": round(s["mp_spread"], 4),
         "range_min": round(s["range"][0], 4),
         "range_max": round(s["range"][1], 4),
     }
