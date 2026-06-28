@@ -1,7 +1,8 @@
 # The scored index
 
-Melanopy ships a scored index of common colormaps so you can see the axis populated by maps
-people already use. Regenerate it from the package with `uv run scripts/build_leaderboard.py`.
+Applying the rater to the colormaps people already use is what settles how much new design is
+even needed — and three non-obvious facts fall out of it. (Regenerate from the package with
+`uv run scripts/build_leaderboard.py`.)
 
 ![Melanopic leaderboard of common colormaps](assets/figures/melanopic_leaderboard.png){ loading=lazy }
 
@@ -9,7 +10,7 @@ people already use. Regenerate it from the package with `uv run scripts/build_le
 
 Display white = 1.0; representative panel.
 
-| colormap               | M/P  | σ (purity) | regime            |
+| colormap               | M/P  | σ (spread) | regime            |
 | ---------------------- | ---- | ---------- | ----------------- |
 | **sodium** (melanopy)  | 0.29 | 0.07       | protective, pure  |
 | copper                 | 0.49 | 0.03       | protective, pure  |
@@ -25,12 +26,12 @@ Display white = 1.0; representative panel.
 Three findings fall out:
 
 - **Protective + pure already exists.** `copper` (0.49, σ 0.03) and **Sodium** (0.29) sit low
-    and flat — a warm, circadian-pure sequential map has been hiding in matplotlib all along.
+    and flat — a warm, tight-spread (pure) sequential map has been hiding in matplotlib all along.
 - **Popular PU maps are *smeared*.** viridis / magma / inferno / cividis / plasma sit mid-axis
-    but dump high-melanopic blue at their dark (low-data) end — none is circadian-pure (σ ≈ 0.4–1.0).
+    but dump high-melanopic blue at their dark (low-data) end — none sits tight (σ ≈ 0.4–1.0).
 - **The genuine gap is a pure *alerting* map.** Existing cool maps (`cool`, `winter`, `Blues`)
-    reach the alerting end but are not perceptually uniform or are single-hue. That is the slot
-    the generator's **Xenon** endpoint is built to fill (see [The Diel family](generator.md)).
+    reach the alerting end but most aren't perceptually uniform. That is the slot
+    the generator's **Xenon** endpoint is built to fill (see [The Circadia family](circadia.md)).
 
 ## Robust to the display panel
 

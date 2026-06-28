@@ -2,7 +2,8 @@
 
 melanopic_ratio(rgb) -> M/P normalized so display white = 1.0
     < 1 protective (warm, low ipRGC / melatonin drive); > 1 alerting (cool, blue-rich).
-rate_colormap(colors) -> {melanopic_ratio (axis position), purity_sigma, range}.
+rate_colormap(colors) -> {melanopic_ratio (M/P mean), mp_spread, range}; pass profile=True
+    to also get the per-position positions/ratios/luminance arrays behind those numbers.
 """
 
 import numpy as np
@@ -32,7 +33,31 @@ def melanopic_ratio(rgb, panel="representative"):
         return (M / Y) / w
 
 
-def rate_colormap(colors, panel="representative"):
+def rate_colormap(colors, panel="representative", profile=False):
+    """Rate an sRGB ramp on the melanopic axis (display white = 1.0).
+
+    Both summary numbers are luminance-weighted and ignore near-black pixels (which emit almost
+    nothing), so neither is dominated by the dark end of the ramp.
+
+    Parameters
+    ----------
+    colors : array-like
+        An ``(N, 3)`` sRGB ramp, values in ``[0, 1]``.
+    panel : str, optional
+        Display archetype selecting the per-primary coefficients (see :data:`coeffs.PANELS`).
+    profile : bool, optional
+        When ``True``, also return the per-position arrays behind the summary numbers.
+
+    Returns
+    -------
+    dict
+        ``melanopic_ratio`` — the **M/P mean** (luminance-weighted axis position; < 1 protective,
+        > 1 alerting); ``mp_spread`` — the luminance-weighted **spread** of the per-position ratio
+        (a tight spread reads as a "pure" ramp); and ``range`` — its (min, max) over the emitting
+        ramp. With ``profile=True`` the dict also carries ``positions`` (the ``[0, 1]`` data grid),
+        ``ratios`` (per-position M/P, NaN where the colour emits ~nothing), and ``luminance`` (the
+        per-position photopic luminance, i.e. the weights) — enough to plot the M/P profile.
+    """
     mp = get_coeffs(panel)
     w = _white(mp)
     colors = np.asarray(colors, float)
@@ -46,8 +71,13 @@ def rate_colormap(colors, panel="representative"):
     rr = ratios[keep]
     wm = float((ww * rr).sum() / ww.sum())
     ws = float(np.sqrt((ww * (rr - wm) ** 2).sum() / ww.sum()))
-    return {
+    out = {
         "melanopic_ratio": axis,
-        "purity_sigma": ws,
+        "mp_spread": ws,
         "range": (float(np.nanmin(rr)), float(np.nanmax(rr))),
     }
+    if profile:
+        out["positions"] = np.linspace(0.0, 1.0, len(ratios))
+        out["ratios"] = ratios
+        out["luminance"] = Y
+    return out

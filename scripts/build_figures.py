@@ -75,7 +75,7 @@ def _title(ax, text, size=11, pad=4):
 
 
 def _colors_for(label):
-    """sRGB ramp for a leaderboard label ('sodium (melanopy)' -> Diel endpoint, else builtin)."""
+    """sRGB ramp for a leaderboard label ('sodium (melanopy)' -> Circadia anchor, else builtin)."""
     named = {"sodium": mp.SODIUM, "equilux": mp.EQUILUX, "xenon": mp.XENON}
     key = label.replace(" (melanopy)", "")
     cm = named[key] if "(melanopy)" in label else plt.get_cmap(key)
@@ -90,8 +90,8 @@ def _read_csv(name):
 # ----------------------------------------------------------------------------- generator
 def fig_generator(path):
     alphas = np.linspace(0, 1, 21)
-    axis = np.array([mp.rate_colormap(mp.diel(a))["melanopic_ratio"] for a in alphas])
-    sigma = np.array([mp.rate_colormap(mp.diel(a))["purity_sigma"] for a in alphas])
+    axis = np.array([mp.rate_colormap(mp.circadia(a))["melanopic_ratio"] for a in alphas])
+    sigma = np.array([mp.rate_colormap(mp.circadia(a))["mp_spread"] for a in alphas])
 
     _theme()
     fig = plt.figure(figsize=(12, 14), facecolor=BG)
@@ -110,13 +110,13 @@ def fig_generator(path):
     show = np.linspace(0, 1, 9)
     gsa = gs[0].subgridspec(len(show), 1, hspace=0.85)
     for i, a in enumerate(show):
-        s = mp.rate_colormap(mp.diel(a))
+        s = mp.rate_colormap(mp.circadia(a))
         ax = fig.add_subplot(gsa[i])
-        _strip(ax, mp.diel(a), f"α={a:.2f}")
+        _strip(ax, mp.circadia(a), f"α={a:.2f}")
         ax.text(
             1.012,
             0.5,
-            f"M/P {s['melanopic_ratio']:.2f}  ·  σ {s['purity_sigma']:.2f}",
+            f"M/P {s['melanopic_ratio']:.2f}  ·  σ {s['mp_spread']:.2f}",
             transform=ax.transAxes,
             color=INK2,
             fontsize=8,
@@ -130,7 +130,7 @@ def fig_generator(path):
                 pad=6,
             )
 
-    # B: melanopic ratio + purity vs alpha
+    # B: melanopic ratio + spread vs alpha
     axb = fig.add_subplot(gs[1])
     axb.set_facecolor(PANEL)
     axb.plot(alphas, axis, color=AMBER, lw=2.4, marker="o", ms=4, label="melanopic ratio")
@@ -142,8 +142,8 @@ def fig_generator(path):
     axb.tick_params(colors=INK2)
     axb.tick_params(axis="y", colors=AMBER)
     axc = axb.twinx()
-    axc.plot(alphas, sigma, color=TEAL, lw=2.0, ls="--", marker="s", ms=3, label="purity σ")
-    axc.set_ylabel("purity σ", color=TEAL)
+    axc.plot(alphas, sigma, color=TEAL, lw=2.0, ls="--", marker="s", ms=3, label="spread σ")
+    axc.set_ylabel("spread σ", color=TEAL)
     axc.tick_params(axis="y", colors=TEAL)
     axc.set_ylim(0, max(0.2, sigma.max() * 1.4))
     for sp in (*axb.spines.values(), *axc.spines.values()):
@@ -153,7 +153,7 @@ def fig_generator(path):
     axb.legend(h1 + h2, l1 + l2, facecolor=PANEL, edgecolor=HAIR, fontsize=8.5, labelcolor=INK2)
     _title(
         axb,
-        "Proof — melanopic ratio rises monotonically with α; purity σ low on the warm "
+        "Proof — melanopic ratio rises monotonically with α; spread σ low on the warm "
         "side, bounded at the cool end",
         size=10.5,
     )
@@ -162,7 +162,7 @@ def fig_generator(path):
     axp = fig.add_subplot(gs[2])
     axp.set_facecolor(PANEL)
     for a, col in [(0.0, AMBER), (0.5, GREY), (1.0, BLUE)]:
-        colors = mp.diel(a)
+        colors = mp.circadia(a)
         prof = mp.melanopic_ratio(colors)
         y = _luminance(colors)
         axp.plot(T, np.where(y > 0.01 * y.max(), prof, np.nan), color=col, lw=2, label=f"α={a:.1f}")
@@ -184,7 +184,7 @@ def fig_generator(path):
 
     # D: alerting endpoint under CVD
     gsd = gs[3].subgridspec(4, 1, hspace=0.45)
-    xenon = mp.diel(1.0)
+    xenon = mp.circadia(1.0)
     for k, (lab, kind) in enumerate(CVD):
         ax = fig.add_subplot(gsd[k])
         _strip(ax, _cvd(xenon, kind), lab)
@@ -348,7 +348,7 @@ def _pairwise_min(colors):
 
 
 def fig_melanopic_colormaps(path):
-    sodium = mp.diel(0.0)
+    sodium = mp.circadia(0.0)
     cat = np.array([to_rgb(c) for c in mp.CATEGORICAL_DARK])
     names = mp.CATEGORICAL_NAMES
 

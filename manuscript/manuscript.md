@@ -3,11 +3,13 @@
 **Author.** Remington Mallett.
 
 **Naming.** *Melanopy* is the collection and the Python package
-(`import melanopy as mp`). The one-parameter family is **Diel** (`mp.diel(alpha)`); its endpoints
-are **Sodium** (α = 0, warm/protective) and **Xenon** (α = 1, cool/alerting), with **Equilux**
-(α ≈ 0.55, melanopic ratio ≈ 1) as the neutral crossover. The dial α is the *melanopic
-temperature*. The two reported metrics are the **melanopic ratio (M/P)** — where a map sits on the
-axis — and **circadian purity (σ)** — how tightly it sits.
+(`import melanopy as mp`). The one-parameter family is **Circadia** (`mp.circadia(alpha)`); its
+endpoints are **Sodium** (α = 0, warm/protective) and **Xenon** (α = 1, cool/alerting), with
+**Equilux** (α ≈ 0.55, melanopic ratio ≈ 1) as the neutral crossover. The dial α is the *melanopic
+temperature*. The two reported metrics are the **M/P mean** — where a map sits on the axis — and the
+**M/P spread (σ)** — how tightly it sits. This split is deliberate: the *measured* quantities take
+the precise optical term **melanopic** (M/P mean, M/P spread), while the colormap *family* takes the
+evocative name **Circadia** — precision for what is measured, motivation for what is named.
 
 ---
 
@@ -16,24 +18,27 @@ axis — and **circadian purity (σ)** — how tightly it sits.
 Scientific colormaps are designed around two axes: **perceptual uniformity** (equal data steps
 look equal) and **colour-vision-deficiency (CVD) safety** (the map survives colour blindness). We
 introduce a third — **melanopic content**, the short-wavelength, melatonin-suppressing light a
-colormap emits — which matters whenever a display is a viewer's dominant light source at night:
+colormap emits — which, unlike the other two, is a design *dimension* selected by context rather
+than a pass/fail requirement, and which matters whenever a display is a viewer's dominant light
+source at night:
 sleep laboratories, observatories, neonatal intensive care, overnight radiology, and control
 rooms. We make this axis *measurable* for colormaps. All of a display's dependence collapses into
 **three per-primary melanopic/photopic coefficients** derived from the CIE S 026:2018 melanopic
 action spectrum, reducing the melanopic content of any sRGB colour to a weighted sum of three
-numbers. From this we report two quantities per map: a **melanopic ratio** (axis position,
-normalized so display white = 1) and a **circadian purity** (the luminance-weighted spread of that
-ratio along the ramp). Scoring the colormaps people already use yields three findings: a warm,
-circadian-pure sequential map *already exists* (`copper`, and our `sodium`); the popular
-perceptually-uniform maps are circadian-*smeared* (viridis and its siblings dump high-melanopic
-blue at their dark, low-data end); and the genuine gap is a perceptually-uniform, CVD-safe
-**alerting** map. We fill that gap with the **Diel family**, a one-parameter generator that walks
+numbers. From this we report two luminance-weighted quantities per map: an **M/P mean** (axis
+position, normalized so display white = 1) and an **M/P spread** (how tightly that ratio sits along
+the ramp). Scoring the colormaps people already use yields three findings: a warm, pure sequential
+map *already exists* (`copper`, and our `sodium`); the popular perceptually-uniform maps are
+*smeared* (viridis and its siblings dump high-melanopic blue at their dark, low-data end); and the
+genuine gap is a perceptually-uniform, CVD-safe **alerting** map. We fill that gap with the
+**Circadia family**, a one-parameter generator that walks
 the axis (melanopic ratio 0.29 → 1.73) while holding perceptual uniformity and CVD-recoverability
 fixed — by sharing a single monotone-lightness profile across the parameter and letting it steer
 only chroma. We are explicit about scope: we rate a colour's *chromaticity*, not a light *dose*,
 and the physiological effect of a colormap alone is second-order. The contribution is the
-measurement, the scored index, the constrained generator, and surfacing an axis the field has not
-named. The rater, index, generator, and figures are reproducible from the open-source package.
+measurement, the scored index *and the empirical findings it yields*, the constrained generator, and
+surfacing an axis the field has not named. The rater, index, generator, and figures are reproducible
+from the open-source package.
 
 ---
 
@@ -135,27 +140,27 @@ coefficients** — the melanopic/photopic ratio of each RGB primary. For the rep
 | B | 10.9681 |
 
 The blue primary does almost all of the melanopic work, which is precisely why the axis is mostly a
-warm ↔ cool story, and why the warm/cool purity asymmetry of §6 is fundamental rather than
+warm ↔ cool story, and why the warm/cool spread asymmetry of §6 is fundamental rather than
 incidental. These three numbers are the entire display-dependent part of the model; swapping in a
 different panel means swapping three coefficients (§4.2).
 
 ### 4.1 Two metrics
 
-A single mean hides the structure that matters, so the rater reports **two distinct quantities**
-(plus the raw per-position range):
+Both reported quantities are **luminance-weighted**, and near-black pixels (which emit almost
+nothing) are dropped — a pipeline-level decision so that neither number is dominated by the dark end
+of the ramp. A single mean still hides the structure that matters, so the rater reports **two
+distinct quantities** (plus the raw per-position range):
 
-- **melanopic ratio (M/P)** — *where* the map sits: the luminance-weighted mean of the
-  per-position ratio (display white = 1; < 1 protective, > 1 alerting).
-- **circadian purity (σ)** — *how tightly* it sits: the luminance-weighted spread of the
-  per-position ratio along the ramp. Lower is more circadian-pure.
+- **M/P mean** — *where* the map sits: the mean of the per-position ratio (display white = 1;
+  < 1 protective, > 1 alerting).
+- **M/P spread (σ)** — *how tightly* it sits: the spread of the per-position ratio along the ramp.
+  A tight spread reads as a "pure" ramp.
 
 The two are independent, and the gap between them is the point. viridis sits mid-axis (M/P 0.83 —
 mildly protective on *average*) yet has a high spread (σ 0.56): it dumps high-melanopic blue at its
-dark, low-data end, so it is *smeared*, not pure. A protective mean and a pure ramp are different
-properties, and a map can have one without the other. Both metrics are luminance-weighted so that
-near-black pixels, which emit almost nothing, do not dominate the score. (Concretely,
-`rate_colormap(viridis)` returns `melanopic_ratio = 0.834`, `purity_sigma = 0.556`,
-`range = (0.395, 3.069)`.)
+dark, low-data end, so it is *smeared*, not tight. A protective mean and a pure ramp are different
+properties, and a map can have one without the other. (Concretely, `rate_colormap(viridis)` returns
+`melanopic_ratio = 0.834`, `mp_spread = 0.556`, `range = (0.395, 3.069)`.)
 
 ### 4.2 Display-panel dependence
 
@@ -173,7 +178,7 @@ A rater invites an obvious empirical question — *where do the colormaps people
 land?* — and answering it decides how much new design is needed at all. We scored a representative
 set on the default panel (display white = 1; regenerable from the package):
 
-| colormap | M/P | σ (purity) | regime |
+| colormap | M/P | σ (spread) | regime |
 |---|---|---|---|
 | **sodium** (Melanopy) | 0.29 | 0.07 | protective, pure |
 | copper | 0.49 | 0.03 | protective, pure |
@@ -186,22 +191,22 @@ set on the default panel (display white = 1; regenerable from the package):
 | **xenon** (Melanopy) | 1.73 | 0.42 | alerting, ~PU/CVD |
 | cool | 2.06 | 0.58 | alerting, not PU |
 
-![**Figure 2.** The melanopic leaderboard: common colormaps placed on the axis (display white = 1), with per-map melanopic ratio and circadian-purity spread; per-panel bands show robustness to the display archetype.](figures/melanopic_leaderboard.png)
+![**Figure 2.** The melanopic leaderboard: common colormaps placed on the axis (display white = 1), with per-map M/P mean and M/P spread; per-panel bands show robustness to the display archetype.](figures/melanopic_leaderboard.png)
 
 Three findings fall out:
 
 1. **A protective, pure map already exists.** `copper` (M/P 0.49, σ 0.03) and our `sodium`
-   (0.29, σ 0.07) sit both low *and* flat — a warm, circadian-pure sequential map has been hiding
+   (0.29, σ 0.07) sit both low *and* flat — a warm, pure sequential map has been hiding
    in matplotlib all along. No new design is needed at the protective end; it needs only to be
    *named and surfaced*.
 2. **The popular uniform maps are smeared.** viridis, magma, inferno, cividis, and plasma sit
-   mid-axis but dump high-melanopic blue at their dark (low-data) end — none is circadian-pure
+   mid-axis but dump high-melanopic blue at their dark (low-data) end — none is tight
    (σ ≈ 0.4–0.6). Choosing one of these "for safety" at night does not buy a low melanopic load;
    it buys a *mixed* one.
 3. **The genuine gap is a pure alerting map.** The maps that reach the alerting end — `cool`,
    `winter`, `Blues` — are either not perceptually uniform or single-hue. A perceptually-uniform,
    CVD-safe *alerting* map does not exist off the shelf. That is the one slot worth generating, and
-   it motivates the Diel family's Xenon endpoint (§6).
+   it motivates the Circadia family's Xenon endpoint (§6).
 
 ### 5.1 Robustness to the display panel
 
@@ -213,19 +218,19 @@ on every panel and the widest single-map band being the saturated `cool` (≈ 0.
 So *where a map sits on the axis* is a property one can trust without knowing the exact monitor —
 which is what makes the index, not just a single measurement, worth publishing.
 
-## 6. The Diel family: a uniformity-preserving generator
+## 6. The Circadia family: a uniformity-preserving generator
 
-The leaderboard says the protective end is already covered but the alerting end is not. The **Diel
-family** is a one-parameter generator built to walk the whole axis without surrendering uniformity
-or CVD-safety at any point along it.
+The leaderboard says the protective end is already covered but the alerting end is not. The
+**Circadia family** is a one-parameter generator built to walk the whole axis without surrendering
+uniformity or CVD-safety at any point along it.
 
-![**Figure 3.** The Diel family swept across α from the protective endpoint Sodium (α = 0) through the neutral Equilux (α ≈ 0.55) to the alerting Xenon (α = 1). Lightness rises identically for every α; only the chroma path changes.](figures/circadian_generator.png)
+![**Figure 3.** The Circadia family swept across α from the protective endpoint Sodium (α = 0) through the neutral Equilux (α ≈ 0.55) to the alerting Xenon (α = 1). Lightness rises identically for every α; only the chroma path changes.](figures/circadian_generator.png)
 
 The dial α runs from 0 (protective) to 1 (alerting):
 
 | anchor | α | M/P | character |
 |---|---|---|---|
-| **Sodium** | 0.00 | 0.29 | warm, protective, circadian-pure |
+| **Sodium** | 0.00 | 0.29 | warm, protective, pure |
 | **Equilux** | 0.55 | ≈ 1.00 | neutral (M/P = 1 crossover, true α ≈ 0.5505) |
 | **Xenon** | 1.00 | 1.73 | cool, alerting |
 
@@ -240,11 +245,11 @@ monotone function of α** (0.29 → 1.73) that the generator never computes. The
 geometry; it is not imposed on it. That both properties actually hold is *verified numerically*
 (§7), not assumed.
 
-**A fundamental warm/cool asymmetry.** Sodium is far more circadian-pure than Xenon (σ 0.07 vs
-0.42), and this is a property of the display gamut, not a tuning miss. Short-wavelength primaries
-are intrinsically low-luminance, so *a light, saturated blue does not exist* — light cool colours
-must desaturate toward white, where M/P → 1. A perfectly circadian-pure *protective* map is
-therefore achievable under a shared lightness profile, but a perfectly pure *alerting* one is not.
+**A fundamental warm/cool asymmetry.** Sodium sits far tighter on the axis than Xenon (M/P spread
+σ 0.07 vs 0.42), and this is a property of the display gamut, not a tuning miss. Short-wavelength
+primaries are intrinsically low-luminance, so *a light, saturated blue does not exist* — light cool
+colours must desaturate toward white, where M/P → 1. A perfectly pure *protective* map is therefore
+achievable under a shared lightness profile, but a perfectly pure *alerting* one is not.
 This is a statement about the intersection of the melanopic axis with the sRGB gamut, and we report
 it rather than hide it (§9).
 
@@ -273,7 +278,7 @@ luox-uploadable spectrum set are in the companion `luox_crosscheck.md`.
 
 **Perceptual uniformity and CVD-recoverability.** The generator's structural claims are checked
 with `colorspacious`. For perceptual uniformity, the CAM02-UCS lightness (J′) is strictly
-increasing along each Diel map and the CAM02-UCS step sizes are near-constant (coefficient of
+increasing along each Circadia map and the CAM02-UCS step sizes are near-constant (coefficient of
 variation < 0.30). For CVD, under simulated deuteranopia, protanopia, and tritanopia (Machado et
 al. model [@machado2009cvd], severity 100) the perceived lightness stays strictly monotone, so the
 data order remains recoverable. We deliberately say **CVD-recoverable**, not the stronger
@@ -328,7 +333,7 @@ Melanopy's credibility *is* its contribution, so the caveats are stated plainly 
   archetypes and let users plug in measured SPDs. S 026 validates the *spectral weighting*; the
   *panel model* is orthogonal and still approximate. Reassuringly, the ranking is robust across
   panels (§5.1).
-- **The warm/cool purity asymmetry is fundamental.** A perfectly pure protective map is achievable;
+- **The warm/cool spread asymmetry is fundamental.** A perfectly pure protective map is achievable;
   a perfectly pure alerting one is not, because light saturated blues do not exist in the gamut
   (§6). This is a property of the axis ∩ the display gamut, not a defect to be tuned away.
 - **"CVD-recoverable", not "CVD-safe".** A shared monotone-lightness profile makes *order*

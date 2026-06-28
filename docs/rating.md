@@ -28,6 +28,10 @@ the representative panel those coefficients are:
 The blue primary does almost all of the melanopic work — which is exactly why the axis is
 mostly a warm ↔ cool story.
 
+**One weighting for the whole pipeline.** Both summary numbers below are **luminance-weighted**,
+and near-black pixels (`Y > 0.01 · Y_max`) are dropped — a pixel that emits almost no light should
+not sway *either* statistic. This is a pipeline-level decision, not a quirk of one metric.
+
 ## The two metrics
 
 `rate_colormap` returns two *distinct* numbers (plus the raw per-position `range`):
@@ -39,18 +43,17 @@ import melanopy as mp
 
 c = plt.get_cmap("viridis")(np.linspace(0, 1, 256))[:, :3]
 mp.rate_colormap(c)
-# {'melanopic_ratio': 0.834, 'purity_sigma': 0.556, 'range': (0.395, 3.069)}
+# {'melanopic_ratio': 0.834, 'mp_spread': 0.556, 'range': (0.395, 3.069)}
 ```
 
-| metric                                    | meaning                                                                                                       |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **melanopic ratio (M/P)**                 | *where* the map sits — luminance-weighted mean position (white = 1). **< 1 protective**, **> 1 alerting**.    |
-| **circadian purity (σ)** — `purity_sigma` | *how tightly* it sits — luminance-weighted spread of the per-position ratio. **Lower = more circadian-pure.** |
+| metric                           | meaning                                                                                              |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **M/P mean** — `melanopic_ratio` | *where* the map sits — the mean axis position (white = 1). **< 1 protective**, **> 1 alerting**.     |
+| **M/P spread (σ)** — `mp_spread` | *how tightly* it sits — the spread of the per-position ratio. A tight spread reads as a "pure" ramp. |
 
 The two are independent. viridis sits mid-axis (0.83 — mildly protective on average) yet has a
-**high σ (0.56)**: it dumps high-melanopic blue at its dark end, so it is *smeared*, not pure.
-A single mean would hide that; σ surfaces it. Both metrics are luminance-weighted, so near-black
-pixels that emit almost nothing don't dominate the score.
+**high spread (0.56)**: it dumps high-melanopic blue at its dark end, so it is *smeared*, not
+tight. A single mean would hide that; the spread surfaces it.
 
 To score a single colour rather than a whole map, use `melanopic_ratio`:
 
@@ -58,6 +61,33 @@ To score a single colour rather than a whole map, use `melanopic_ratio`:
 mp.melanopic_ratio([1.0, 1.0, 1.0])   # display white -> array([1.0])
 mp.melanopic_ratio([1.0, 0.4, 0.0])   # a warm orange  -> < 1
 ```
+
+## The per-position profile
+
+The mean and spread summarize a *curve* — the M/P ratio at every position along the ramp. Pass
+`profile=True` to get that curve back and plot it; this is the "where does the blue get dumped?"
+view, and it reproduces the smeared-viridis story in a single call:
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+import melanopy as mp
+
+c = plt.get_cmap("viridis")(np.linspace(0, 1, 256))[:, :3]
+p = mp.rate_colormap(c, profile=True)
+# adds: 'positions' (0..1 grid), 'ratios' (per-position M/P), 'luminance' (the weights)
+
+plt.plot(p["positions"], p["ratios"])
+plt.axhline(1.0, ls=":")  # display white
+plt.xlabel("data value")
+plt.ylabel("melanopic ratio (M/P)")
+plt.show()
+```
+
+The curve climbs well above 1 at viridis's dark end (high-melanopic blue) before settling — a
+high `mp_spread`. `ratios` is `NaN` wherever a colour emits ~nothing, and `luminance` is the
+per-position weight, so you can reproduce the rater's near-black mask
+(`luminance > 0.01 * luminance.max()`) exactly.
 
 ## Display panels
 

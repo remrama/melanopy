@@ -2,9 +2,9 @@
 
 Two deterministic panels, built only from melanopy + matplotlib + numpy:
 
-* a sleep-wake raster coloured by ``diel_sweep`` -- awake reads as alerting (cool), asleep as
+* a sleep-wake raster coloured by ``circadia_sweep`` -- awake reads as alerting (cool), asleep as
   protective (warm), so the sequential map's melanopic axis *is* the sleep-wake axis;
-* a circadian alerting-drive curve coloured by ``diel_diverging`` -- the biological day arm is
+* a circadian alerting-drive curve coloured by ``circadia_diverging`` -- the biological day arm is
   alerting (cool), the night arm protective (warm), and the zero crossing is circadian-neutral.
 
     uv run scripts/build_sleep_wake_demo.py
@@ -71,7 +71,7 @@ def _raster_panel(fig, ax):
     im = ax.imshow(
         sleep_wake_raster(),
         aspect="auto",
-        cmap=mp.diel_sweep(as_cmap=True),
+        cmap=mp.circadia_sweep(as_cmap=True),
         vmin=0.0,
         vmax=1.0,
         extent=[H0, H1, NDAY + 0.5, 0.5],
@@ -81,7 +81,8 @@ def _raster_panel(fig, ax):
     ax.set_yticks([1, 5, 10, 14])
     ax.set_ylabel("day", color=INK2)
     ax.set_title(
-        "Sleep–wake raster — diel_sweep maps asleep → protective (warm), awake → alerting (cool)",
+        "Sleep–wake raster — circadia_sweep maps asleep → protective (warm), "
+        "awake → alerting (cool)",
         color=INK,
         loc="left",
         fontsize=11,
@@ -97,7 +98,7 @@ def _drive_panel(ax):
     drive = alerting_drive()
     pts = np.array([HOURS, drive]).T.reshape(-1, 1, 2)
     segs = np.concatenate([pts[:-1], pts[1:]], axis=1)
-    lc = LineCollection(segs, cmap=mp.diel_diverging(as_cmap=True), norm=Normalize(-1, 1))
+    lc = LineCollection(segs, cmap=mp.circadia_diverging(as_cmap=True), norm=Normalize(-1, 1))
     lc.set_array(0.5 * (drive[:-1] + drive[1:]))
     lc.set_linewidth(3.2)
     ax.add_collection(lc)
@@ -118,7 +119,7 @@ def _drive_panel(ax):
         va="bottom",
     )
     ax.set_title(
-        "Circadian alerting drive — diel_diverging splits the biological day from the night",
+        "Circadian alerting drive — circadia_diverging splits the biological day from the night",
         color=INK,
         loc="left",
         fontsize=11,

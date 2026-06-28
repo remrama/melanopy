@@ -10,13 +10,13 @@ def test_gray_is_neutral():
 
 
 def test_endpoints_ordered():
-    e = mp.rate_colormap(mp.diel(0.0))["melanopic_ratio"]
-    g = mp.rate_colormap(mp.diel(1.0))["melanopic_ratio"]
+    e = mp.rate_colormap(mp.circadia(0.0))["melanopic_ratio"]
+    g = mp.rate_colormap(mp.circadia(1.0))["melanopic_ratio"]
     assert e < 1.0 < g
 
 
 def test_generator_monotonic_in_alpha():
-    vals = [mp.rate_colormap(mp.diel(x))["melanopic_ratio"] for x in np.linspace(0, 1, 11)]
+    vals = [mp.rate_colormap(mp.circadia(x))["melanopic_ratio"] for x in np.linspace(0, 1, 11)]
     assert all(a < b for a, b in zip(vals, vals[1:]))
 
 

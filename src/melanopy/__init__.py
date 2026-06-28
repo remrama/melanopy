@@ -18,14 +18,22 @@ from .categorical import (
     CATEGORICAL_LIGHT,
     CATEGORICAL_NAMES,
 )
-from .generator import EQUILUX, SODIUM, XENON, circadian_cmap, diel, diel_diverging, diel_sweep
+from .generator import (
+    EQUILUX,
+    SODIUM,
+    XENON,
+    circadia,
+    circadia_diverging,
+    circadia_sweep,
+    circadian_cmap,
+)
 from .rater import melanopic_ratio, rate_colormap
 
 __all__ = [
-    "diel",
+    "circadia",
     "circadian_cmap",
-    "diel_sweep",
-    "diel_diverging",
+    "circadia_sweep",
+    "circadia_diverging",
     "SODIUM",
     "XENON",
     "EQUILUX",

@@ -22,12 +22,12 @@ lets you plug in measured SPDs (`melanopy.spectra.coefficients_from_primaries`).
 the *spectral weighting*; the *panel model* is orthogonal and still approximate. Reassuringly,
 the **ranking is robust** across panels (ρ ≥ 0.99; see [the scored index](leaderboard.md)).
 
-## The warm/cool purity asymmetry is fundamental
+## The warm/cool spread asymmetry is fundamental
 
-A perfectly circadian-pure **protective** map is achievable; a perfectly pure **alerting** one
+A perfectly pure (tight-spread) **protective** map is achievable; a perfectly pure **alerting** one
 is not. Short-wavelength primaries are intrinsically low-luminance, so a light, saturated blue
 does not exist — light cool colours must desaturate toward white. This is a property of the
-axis ∩ the display gamut, not a tuning miss (cool-end σ ≈ 0.42 vs warm-end σ ≈ 0.07).
+axis ∩ the display gamut, not a tuning miss (cool-end M/P spread σ ≈ 0.42 vs warm-end σ ≈ 0.07).
 
 ## "CVD-recoverable", not "CVD-safe"
 

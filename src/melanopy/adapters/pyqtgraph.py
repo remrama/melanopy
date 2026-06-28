@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from ..generator import diel
+from ..generator import circadia
 
 
 def to_pyqtgraph(colors):
@@ -14,6 +14,6 @@ def to_pyqtgraph(colors):
     return pg.ColorMap(pos, rgba)
 
 
-def diel_pyqtgraph(alpha, n=256):
+def circadia_pyqtgraph(alpha, n=256):
     """A pyqtgraph ColorMap for the given alpha — wire to an ImageItem LUT / a slider."""
-    return to_pyqtgraph(diel(alpha, n=n))
+    return to_pyqtgraph(circadia(alpha, n=n))

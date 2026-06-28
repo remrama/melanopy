@@ -8,3 +8,7 @@ dist/
 
 # Zensical docs build output
 site/
+
+# Coverage
+.coverage
+coverage.xml
