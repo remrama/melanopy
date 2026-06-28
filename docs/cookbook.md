@@ -105,6 +105,54 @@ slider.on_changed(lambda v: (im.set_cmap(mp.circadia(v, as_cmap=True)), fig.canv
 plt.show()
 ```
 
+## Label a slider with its rated M/P
+
+`α` is a *control* — a geometric position on the OKLab morph — not the melanopic ratio the viewer
+receives, and that ratio is **panel-dependent**. `mp.circadia_rating(α, panel=...)` composes the
+generator and the rater in one call, so the slider can label itself with the *physical* number for
+its configured panel instead of a bare α. This is what drives the SMACC readout, where the fill LUT
+comes from `melanopy.adapters.pyqtgraph.circadia_pyqtgraph(α)`.
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.widgets import Slider
+
+import melanopy as mp
+
+PANEL = "representative"  # prefer a measured panel for research use — see the API reference
+
+z = np.add.outer(np.sin(np.linspace(0, 6, 200)), np.cos(np.linspace(0, 6, 300)))
+z = (z - z.min()) / (z.max() - z.min())
+
+fig, ax = plt.subplots()
+fig.subplots_adjust(bottom=0.2)
+im = ax.imshow(z, cmap=mp.circadia(0.0, as_cmap=True), aspect="auto")
+
+
+def relabel(a):
+    ratio, spread = mp.circadia_rating(a, panel=PANEL)  # the rated, panel-aware M/P
+    ax.set_title(f"α = {a:.2f}  →  M/P = {ratio:.2f}  (σ = {spread:.2f}, {PANEL})")
+
+
+def on_change(a):
+    im.set_cmap(mp.circadia(a, as_cmap=True))  # recolour the fill; never recompute the data
+    relabel(a)
+    fig.canvas.draw_idle()
+
+
+sax = fig.add_axes([0.2, 0.06, 0.6, 0.04])
+slider = Slider(sax, "α", 0.0, 1.0, valinit=0.0)
+relabel(0.0)
+slider.on_changed(on_change)
+plt.show()
+```
+
+The recompute is cheap (a vectorized 256-point rating), but if you drag fast you can memoize on
+`(round(α, 3), panel)` — α → M/P is a pure function of those two. Present α as the *cause* and M/P
+as its physical *consequence*: M/P is a chromaticity, not a light dose (see
+[Limitations](limitations.md)).
+
 ## Match the map to the data
 
 The melanopic axis isn't only a score to evaluate against — it can *carry* the data's meaning.

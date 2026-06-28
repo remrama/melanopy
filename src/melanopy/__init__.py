@@ -27,7 +27,7 @@ from .generator import (
     circadia_sweep,
     circadian_cmap,
 )
-from .rater import melanopic_ratio, rate_colormap
+from .rater import circadia_rating, melanopic_ratio, rate_colormap
 
 __all__ = [
     "circadia",
@@ -39,6 +39,7 @@ __all__ = [
     "EQUILUX",
     "melanopic_ratio",
     "rate_colormap",
+    "circadia_rating",
     "CATEGORICAL_DARK",
     "CATEGORICAL_LIGHT",
     "CATEGORICAL_NAMES",

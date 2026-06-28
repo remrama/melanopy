@@ -81,3 +81,31 @@ def rate_colormap(colors, panel="representative", profile=False):
         out["ratios"] = ratios
         out["luminance"] = Y
     return out
+
+
+def circadia_rating(alpha, *, panel="representative"):
+    """Rated melanopic ratio of a Circadia map at ``alpha`` — the physical number behind the dial.
+
+    ``alpha`` is a geometric position on the OKLab morph, not a melanopic ratio, and the M/P a
+    viewer actually receives is panel-dependent. This composes the generator and the rater so a
+    live UI (e.g. a labelled slider) can show the rated M/P for its configured ``panel`` rather
+    than bare ``alpha``. The recompute is cheap (a vectorized 256-point rating); a hot UI may
+    memoize on ``(round(alpha, 3), panel)``.
+
+    Parameters
+    ----------
+    alpha : float
+        Position on the Circadia axis in ``[0, 1]`` (0 protective/warm, 1 alerting/cool).
+    panel : str, optional
+        Display archetype selecting the per-primary coefficients (see :data:`coeffs.PANELS`).
+
+    Returns
+    -------
+    tuple of float
+        ``(melanopic_ratio, mp_spread)`` — the M/P mean (axis position; < 1 protective, > 1
+        alerting) and its luminance-weighted spread, both for ``panel``.
+    """
+    from .generator import circadia  # local import avoids a generator/rater import cycle
+
+    r = rate_colormap(circadia(alpha), panel=panel)
+    return r["melanopic_ratio"], r["mp_spread"]
