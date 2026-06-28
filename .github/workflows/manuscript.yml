@@ -1,6 +1,6 @@
 name: Manuscript
 
-# Build the manuscript PDF (Pandoc + XeLaTeX) and upload it as a downloadable artifact.
+# Build the manuscript PDF (pdflatex + biber, via latexmk) and upload it as a downloadable artifact.
 # Runs only when something under manuscript/ (or this workflow) changes.
 
 on:
@@ -26,17 +26,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Install Pandoc + XeLaTeX
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            pandoc lmodern \
-            texlive-xetex texlive-latex-recommended texlive-latex-extra \
-            texlive-fonts-recommended fonts-dejavu-core
-      - name: Build PDF
-        run: bash manuscript/build.sh
+      - name: Build PDF (pdflatex + biber via latexmk)
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: manuscript
+          root_file: main.tex
       - uses: actions/upload-artifact@v7
         with:
           name: manuscript
-          path: manuscript/out/manuscript.pdf
+          path: manuscript/main.pdf
           if-no-files-found: error
