@@ -50,5 +50,5 @@ The generator's structural claims are checked with `colorspacious` in
 
 ```bash
 uv run --extra dev pytest -q                   # the full suite, including the checks above
-uv run --extra dev scripts/build_figures.py    # regenerate the figures on this page
+uv run --extra dev scripts/build_figures.py --out docs/assets/figures   # regenerate this page's figures
 ```

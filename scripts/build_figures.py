@@ -3,14 +3,17 @@
 Everything here reads from `melanopy` and the scored index in `index/`; CVD simulation uses
 `colorspacious` (the dev-extra dependency the tests use).
 
-    uv run --extra dev scripts/build_figures.py             # all figures
-    uv run --extra dev scripts/build_figures.py generator   # just one
+    uv run --extra dev scripts/build_figures.py                          # all → manuscript/figures
+    uv run --extra dev scripts/build_figures.py generator               # just one
+    uv run --extra dev scripts/build_figures.py --out docs/assets/figures   # refresh docs copies
+    uv run --extra dev scripts/build_figures.py --theme dark            # dark-console variant
 
-Figures are written to manuscript/figures/ (alongside the manuscript draft).
+Light is the default (white-page look for the manuscript PDF and the light-mode docs site);
+pass ``--theme dark`` for the dark-console plates. Palettes live in scripts/_figtheme.py.
 """
 
+import argparse
 import csv
-import sys
 from pathlib import Path
 
 import matplotlib as mpl
@@ -24,6 +27,8 @@ from matplotlib.colors import ListedColormap, to_rgb
 import melanopy as mp
 from melanopy.coeffs import LUM_W
 
+from _figtheme import LIGHT, THEMES, apply_theme
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "manuscript" / "figures"
 T = np.linspace(0, 1, 256)
@@ -34,10 +39,11 @@ CVD = [
     ("tritan", "tritanomaly"),
 ]
 
-# dark-console theme (matches the prototype plates)
-BG, PANEL, INK, INK2, HAIR = "#181410", "#221C16", "#ECE3D4", "#A99D89", "#3A332B"
-AMBER, TEAL, BLUE, GREY = "#F2A93E", "#34C2A4", "#4A9BE8", "#A99D89"
-RGB_COLS = ["#E0573B", "#79CC70", "#4987D9"]
+# Palette globals — default light; main() rebinds them per --theme via apply_theme(). The
+# figure functions below read these names directly; see scripts/_figtheme.py for the roles.
+BG, PANEL, INK, INK2, HAIR = LIGHT["BG"], LIGHT["PANEL"], LIGHT["INK"], LIGHT["INK2"], LIGHT["HAIR"]
+AMBER, TEAL, BLUE, GREY = LIGHT["AMBER"], LIGHT["TEAL"], LIGHT["BLUE"], LIGHT["GREY"]
+RGB_COLS = list(LIGHT["RGB"])
 
 
 def _theme():
@@ -438,11 +444,35 @@ FIGURES = {
 
 
 def main():
-    OUT.mkdir(parents=True, exist_ok=True)
-    for key in sys.argv[1:] or list(FIGURES):
+    ap = argparse.ArgumentParser(description="Regenerate the paper/docs figures.")
+    ap.add_argument(
+        "names",
+        nargs="*",
+        metavar="FIGURE",
+        help=f"subset to build (default: all) — any of: {', '.join(FIGURES)}",
+    )
+    ap.add_argument(
+        "--theme",
+        choices=list(THEMES),
+        default=None,
+        help="palette (default: light, or $MELANOPY_FIG_THEME)",
+    )
+    ap.add_argument(
+        "--out",
+        type=Path,
+        default=OUT,
+        help="output directory (default: manuscript/figures)",
+    )
+    args = ap.parse_args()
+    unknown = [n for n in args.names if n not in FIGURES]
+    if unknown:
+        ap.error(f"unknown figure(s) {', '.join(unknown)}; choose from {', '.join(FIGURES)}")
+    theme = apply_theme(globals(), args.theme)
+    args.out.mkdir(parents=True, exist_ok=True)
+    for key in args.names or list(FIGURES):
         func, filename = FIGURES[key]
-        func(OUT / filename)
-        print(f"wrote {OUT / filename}")
+        func(args.out / filename)
+        print(f"wrote {args.out / filename}  [{theme}]")
 
 
 if __name__ == "__main__":
