@@ -9,6 +9,9 @@ dist/
 # Zensical docs build output
 site/
 
+# Manuscript build output (Pandoc -> PDF; built in CI and uploaded as an artifact)
+manuscript/out/
+
 # Coverage
 .coverage
 coverage.xml

@@ -1,0 +1,42 @@
+name: Manuscript
+
+# Build the manuscript PDF (Pandoc + XeLaTeX) and upload it as a downloadable artifact.
+# Runs only when something under manuscript/ (or this workflow) changes.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "manuscript/**"
+      - ".github/workflows/manuscript.yml"
+  pull_request:
+    paths:
+      - "manuscript/**"
+      - ".github/workflows/manuscript.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manuscript-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Pandoc + XeLaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pandoc lmodern \
+            texlive-xetex texlive-latex-recommended texlive-latex-extra \
+            texlive-fonts-recommended fonts-dejavu-core
+      - name: Build PDF
+        run: bash manuscript/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manuscript
+          path: manuscript/out/manuscript.pdf
+          if-no-files-found: error
