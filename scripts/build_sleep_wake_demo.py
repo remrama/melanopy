@@ -12,6 +12,7 @@ Two deterministic panels, built only from melanopy + matplotlib + numpy:
 Writes docs/assets/figures/sleep_wake_demo.png (the manuscript can adopt it later).
 """
 
+import argparse
 from pathlib import Path
 
 import matplotlib as mpl
@@ -24,11 +25,14 @@ from matplotlib.colors import Normalize
 
 import melanopy as mp
 
+from _figtheme import LIGHT, THEMES, apply_theme
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "assets" / "figures" / "sleep_wake_demo.png"
 
-BG, PANEL, INK, INK2, HAIR = "#181410", "#221C16", "#ECE3D4", "#A99D89", "#3A332B"
-AMBER, BLUE = "#F2A93E", "#4A9BE8"
+# Palette globals — default light; main() rebinds per --theme. See scripts/_figtheme.py.
+BG, PANEL, INK, INK2, HAIR = LIGHT["BG"], LIGHT["PANEL"], LIGHT["INK"], LIGHT["INK2"], LIGHT["HAIR"]
+AMBER, BLUE = LIGHT["AMBER"], LIGHT["BLUE"]
 
 # A noon-to-noon frame keeps the nocturnal sleep block contiguous and centred.
 H0, H1, NBIN, NDAY = 12.0, 36.0, 144, 14
@@ -141,8 +145,23 @@ def build(path):
 
 
 def main():
-    build(OUT)
-    print(f"wrote {OUT}")
+    ap = argparse.ArgumentParser(description="Build the cookbook sleep–wake demo figure.")
+    ap.add_argument(
+        "--theme",
+        choices=list(THEMES),
+        default=None,
+        help="palette (default: light, or $MELANOPY_FIG_THEME)",
+    )
+    ap.add_argument(
+        "--out",
+        type=Path,
+        default=OUT,
+        help="output PNG path (default: docs/assets/figures/sleep_wake_demo.png)",
+    )
+    args = ap.parse_args()
+    theme = apply_theme(globals(), args.theme)
+    build(args.out)
+    print(f"wrote {args.out}  [{theme}]")
 
 
 if __name__ == "__main__":

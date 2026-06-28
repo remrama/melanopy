@@ -72,7 +72,7 @@ melanopy = ["data/*"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-include = ["pyproject.toml", "scripts/*.py", "src/**/*.py"]
+include = ["pyproject.toml", "scripts/*.py", "src/**/*.py", "tests/**/*.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W", "C90", "UP", "NPY201"]  # ["E4", "E7", "E9"]
@@ -85,6 +85,9 @@ max-complexity = 10
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.ruff.lint.isort]
+known-local-folder = ["_figtheme"]  # sibling helper imported by scripts/build_*.py
 
 [tool.ruff.format]
 docstring-code-format = true
