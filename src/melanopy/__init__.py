@@ -8,7 +8,7 @@ walks the axis while holding uniformity and colourblind-safety fixed.
 
 Honest scope: this rates a colour's *chromaticity*, not light *dose*. Real circadian
 load also depends on screen brightness, screen fill, viewing distance and ambient
-light. See paper/manuscript.md.
+light. See manuscript/manuscript.md.
 """
 
 from .adapters.mpl import register

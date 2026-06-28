@@ -1,13 +1,16 @@
 """The Circadia family — circadian colormap generator.
 
-circadia(alpha): a perceptually-uniform, CVD-safe colormap whose colour temperature (and thus
-melanopic ratio) is set by alpha in [0, 1]:
+circadia(alpha): a perceptually-uniform, CVD-safe colormap whose warm->cool colour temperature
+is set by the input dial alpha in [0, 1]:
     0 = protective (Sodium, warm, low melanopic)   1 = alerting (Xenon, cool, high melanopic)
 
 A shared monotonic OKLab lightness profile keeps the order recoverable under CVD and the
 ramp close to perceptually uniform (both verified numerically in the tests); alpha morphs
-only the chroma vector (warm -> near-neutral crossover ~0.55 -> cool). Melanopic ratio is
-the emergent, monotonic dial.
+only the chroma vector (warm -> near-neutral crossover ~0.55 -> cool).
+
+alpha is the *input* design dial (the "melanopic temperature"), not a melanopic measurement;
+the melanopic ratio is the emergent, monotonic *output* you read back with the rater
+(rate_colormap / circadia_rating). You set alpha; you measure M/P.
 
 Named anchors: SODIUM (0.0), EQUILUX (M/P=1 crossover, ~0.55), XENON (1.0).
 
