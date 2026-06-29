@@ -247,7 +247,7 @@ These three numbers are the entire display-dependent part of the model.
 \par
 \textbf{Two metrics: where the map sits, and how tightly.}
 Both reported quantities are \textbf{luminance-weighted}, and near-black pixels (which emit almost nothing) are dropped --- a pipeline-level decision so that neither number is dominated by the dark end of the ramp.
-A single mean still hides the structure that matters, so the rater reports \textbf{two distinct quantities} (plus the raw per-position range):
+A single mean still hides the structure that matters, so the rater reports \textbf{two distinct quantities} (plus the raw per-position range; the full per-position profile behind both is plotted in Appendix~\ref{app:profiles}, Fig.~\ref{fig:profiles}):
 
 \begin{itemize}
     \item \textbf{M/P mean} --- \emph{where} the map sits: the mean of the per-position ratio (display white = 1; < 1 protective, > 1 alerting).
@@ -441,6 +441,19 @@ Second, it is \textbf{bidirectional with no privileged end}: energy-aware design
 Third, we hold \textbf{CVD-recoverability} as an explicit constraint along the entire axis.
 We found no precedent in the colormap-design or melanopic-metrology literatures for a melanopic rater, per-position profile, scored index, or constrained generator; the closest structural prior art is GreenVis~\cite{wang2012greenvis} (the colormap-construction dimension) and Allen et al.~\cite{allen2018metamerism} (the melanopic dimension), each adjacent along one axis but not their intersection.
 This is a structured related-work pass across four literatures (English-only, without a patent-database sweep); we note that the display-hardware patent space contains adjacent per-pixel melanopic and circadian colour-cast methods, none addressing colormap design.
+
+\appendix
+\renewcommand{\thefigure}{A\arabic{figure}}  % appendix figures number A1, A2, ...
+\setcounter{figure}{0}
+\section{Per-position melanopic profiles}\label{app:profiles}
+
+Table~\ref{tab:leaderboard} compresses each colormap to a melanopic mean and spread; Figure~\ref{fig:profiles} plots the full per-position profile those two numbers summarize, for every map in the leaderboard --- the M/P mean is the luminance-weighted height of the curve and $\sigma$ is its vertical spread. Reading the M/P and emission strips together separates a genuinely low-melanopic map (a dark M/P strip throughout, e.g.\ Sodium) from a \emph{smeared} one whose M/P spikes only where the ramp emits almost no light (a bright M/P strip over a dark emission strip at the dark end, e.g.\ viridis).
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{fig_melanopic_profiles.png}
+    \caption{\textbf{Per-position melanopic profiles --- the profile behind Table~\ref{tab:leaderboard}.} For every colormap, the melanopic ratio at each ramp position: the un-summarized curve whose luminance-weighted height is the M/P mean and whose spread is $\sigma$ in Table~\ref{tab:leaderboard}. \emph{Top (overview):} each map's M/P curve on a shared $\log_2$ axis (white = 1, with protective/alerting shading), coloured by its own colormap with opacity tracking per-position luminance --- so a curve fades exactly where it would otherwise spike at the dark, low-emission end; a thin grey curve beneath shows the true unweighted height, and near-black positions are gaps. Maps are split into three panels by M/P rank to avoid overplotting. \emph{Below:} a triplet per map --- the \textbf{colour} ramp; the per-position \textbf{M/P} on a fixed global $\log_2$ grey scale (black = 0.25, mid-grey = 1, white = 4; near-black / no-emission positions are hatched rather than painted an extreme grey); and the per-position \textbf{emission} (photopic luminance, normalized within each map). Where the M/P strip is bright but the emission strip is dark --- e.g.\ viridis and inferno at their dark ends --- the melanopic ``spike'' carries almost no light: the honest reading of dark-end blue, and the visual form of the chromaticity-not-dose caveat.}\label{fig:profiles}
+\end{figure*}
 
 \section*{Declarations}
 

@@ -22,6 +22,7 @@ mpl.use("Agg")
 import colorspacious as cs
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, to_rgb
 
 import melanopy as mp
@@ -527,10 +528,191 @@ def fig_melanopic_colormaps(path):
     plt.close(fig)
 
 
+# --------------------------------------------------------- per-position profiles (appendix)
+# The un-summarized profile behind Table 1: rate_colormap(profile=True) gives, per ramp position,
+# the melanopic ratio (NaN where the colour emits ~nothing) and the photopic luminance (the weight).
+# Table 1's M/P mean is the luminance-weighted height of this curve; sigma is its spread.
+def _spans(mask):
+    """Yield ``(start, end)`` (end-exclusive) index spans where boolean ``mask`` is True."""
+    idx = np.flatnonzero(mask)
+    if not len(idx):
+        return
+    brk = np.flatnonzero(np.diff(idx) > 1)
+    for s, e in zip(np.r_[idx[0], idx[brk + 1]], np.r_[idx[brk], idx[-1]] + 1):
+        yield int(s), int(e)
+
+
+def _mp_gray(ratios):
+    """Per-position M/P -> [0,1] gray on the fixed global log2 scale (0.25->0, 1->0.5, 4->1).
+
+    Log2 because the axis is multiplicative around the white point. NaN (no emission) stays NaN so
+    the strip can hatch it rather than paint an extreme (and meaningless) gray.
+    """
+    return np.clip((np.log2(ratios) + 2.0) / 4.0, 0.0, 1.0)
+
+
+def _profile_strip(ax, img, cmap):
+    """One thin (1 x N) image strip, no ticks, hairline frame."""
+    ax.imshow(img.reshape(1, -1), aspect="auto", cmap=cmap, vmin=0, vmax=1, extent=[0, 1, 0, 1])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for sp in ax.spines.values():
+        sp.set_color(HAIR)
+        sp.set_linewidth(0.4)
+
+
+def _overview(ax, group, gi):
+    """One overview panel: each map's M/P curve coloured by its colormap, faded by luminance."""
+    ax.set_facecolor(PANEL)
+    ax.set_yscale("log", base=2)
+    ax.axhspan(0.22, 1.0, color=AMBER, alpha=0.06)  # protective band
+    ax.axhspan(1.0, 4.4, color=BLUE, alpha=0.06)  # alerting band
+    ax.axhline(1.0, color=INK2, lw=0.8, ls="--")
+    for m in group:
+        pos, mp_, lum = m["pos"], m["mp"], m["lum"]
+        ax.plot(pos, mp_, color=INK2, lw=0.5, alpha=0.45, zorder=1)  # faint full-opacity raw curve
+        pts = np.column_stack([pos, mp_])
+        segs = np.stack([pts[:-1], pts[1:]], axis=1)
+        rgba = ListedColormap(np.clip(m["colors"], 0, 1))(0.5 * (pos[:-1] + pos[1:]))
+        rgba[:, 3] = np.clip(0.5 * (lum[:-1] + lum[1:]) / lum.max(), 0.0, 1.0)  # luminance opacity
+        ok = ~np.isnan(segs).any(axis=(1, 2))  # NaN positions are gaps, not interpolated
+        ax.add_collection(LineCollection(segs[ok], colors=rgba[ok], linewidths=1.6, zorder=2))
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0.22, 4.4)
+    ax.set_yticks([0.25, 0.5, 1, 2, 4])
+    ax.set_yticklabels(["0.25", "0.5", "1", "2", "4"])
+    ax.set_xticks([0, 1])
+    ax.tick_params(colors=INK2, labelsize=8)
+    for sp in ax.spines.values():
+        sp.set_color(HAIR)
+    ax.set_title(f"M/P rank {6 * gi + 1}–{6 * gi + len(group)}", color=INK2, fontsize=9, loc="left")
+    if gi == 0:
+        ax.set_ylabel("melanopic ratio  (log$_2$, white = 1)", color=INK2, fontsize=9)
+
+
+def fig_profiles(path):
+    lb = _read_csv("leaderboard.csv")  # ascending M/P (same order as Table 1)
+    maps = []
+    for r in lb:
+        colors = _colors_for(r["colormap"])
+        p = mp.rate_colormap(colors, profile=True)
+        maps.append(
+            {
+                "name": r["colormap"].replace(" (melanopy)", ""),
+                "colors": colors,
+                "pos": p["positions"],
+                "mp": p["ratios"],
+                "lum": p["luminance"],
+                "mean": float(r["melanopic_ratio"]),
+                "sigma": float(r["mp_spread"]),
+            }
+        )
+
+    gray = plt.cm.gray.copy()
+    gray.set_bad("white")  # NaN cells render white, then get hatched
+    _theme()
+    fig = plt.figure(figsize=(11, 11), facecolor=BG)
+    outer = fig.add_gridspec(
+        2, 1, height_ratios=[1.0, 3.0], hspace=0.22, left=0.06, right=0.97, top=0.91, bottom=0.03
+    )
+    fig.text(
+        0.06,
+        0.965,
+        "Per-position melanopic profiles — the curve Table 1 summarizes "
+        "(M/P mean = luminance-weighted height, $\\sigma$ = spread)",
+        color=INK,
+        fontsize=12,
+    )
+    fig.text(
+        0.06,
+        0.945,
+        "Overview lines coloured by their colormap, opacity $\\propto$ per-position luminance "
+        "(faint = low emission; thin grey curve = true unweighted height)",
+        color=INK2,
+        fontsize=9,
+    )
+
+    # overview line panels (3 groups of ~6 maps by M/P rank, shared log2 y-axis)
+    ov = outer[0].subgridspec(1, 3, wspace=0.16)
+    for gi, group in enumerate((maps[0:6], maps[6:12], maps[12:17])):
+        _overview(fig.add_subplot(ov[gi]), group, gi)
+
+    # per-map triplets: 2 columns x 9 rows (slot 18 holds the M/P scale bar)
+    grid = outer[1].subgridspec(9, 2, hspace=1.05, wspace=0.10)
+    for i, m in enumerate(maps):
+        cell = grid[i % 9, i // 9].subgridspec(3, 1, hspace=0.0)
+        n = len(m["pos"])
+        axc = fig.add_subplot(cell[0])
+        _profile_strip(axc, np.linspace(0, 1, n), ListedColormap(np.clip(m["colors"], 0, 1)))
+        axc.set_title(
+            f"{m['name']}   M/P {m['mean']:.2f} · $\\sigma$ {m['sigma']:.2f}",
+            color=INK,
+            fontsize=8.5,
+            loc="left",
+            pad=2,
+        )
+        axm = fig.add_subplot(cell[1])
+        g = _mp_gray(m["mp"])
+        _profile_strip(axm, np.ma.masked_invalid(g), gray)
+        for s, e in _spans(np.isnan(g)):  # near-black / NaN: hatch, never an extreme gray
+            axm.add_patch(
+                plt.Rectangle(
+                    (s / n, 0),
+                    (e - s) / n,
+                    1,
+                    facecolor="none",
+                    hatch="////",
+                    edgecolor="0.55",
+                    lw=0,
+                )
+            )
+        axe = fig.add_subplot(cell[2])
+        _profile_strip(
+            axe, m["lum"] / (m["lum"].max() or 1.0), gray
+        )  # emission, per-map normalized
+        if i // 9 == 0:
+            for ax_, lab in ((axc, "colour"), (axm, "M/P"), (axe, "emit")):
+                ax_.set_ylabel(
+                    lab, color=INK2, fontsize=6.5, rotation=0, ha="right", va="center", labelpad=9
+                )
+
+    # shared M/P grayscale scale bar in the empty 18th slot
+    sb = fig.add_subplot(grid[8, 1].subgridspec(3, 1, hspace=0.0)[1])
+    sb.imshow(
+        np.linspace(0, 1, 256).reshape(1, -1),
+        aspect="auto",
+        cmap=gray,
+        vmin=0,
+        vmax=1,
+        extent=[0, 1, 0, 1],
+    )
+    sb.set_yticks([])
+    sb.set_xticks([0, 0.5, 1])
+    sb.set_xticklabels(["0.25", "1.0", "4.0"], fontsize=7, color=INK2)
+    sb.tick_params(colors=INK2, length=2)
+    for sp in sb.spines.values():
+        sp.set_color(HAIR)
+        sp.set_linewidth(0.4)
+    sb.set_title("M/P gray scale (global log$_2$)", color=INK2, fontsize=7.5, loc="left", pad=2)
+    sb.text(
+        0.0,
+        -1.6,
+        "hatched = near-black (no emission); emit strip normalized per map",
+        transform=sb.transAxes,
+        color=INK2,
+        fontsize=7,
+    )
+
+    fig.savefig(path, dpi=160, facecolor=BG)
+    fig.savefig(path.with_suffix(".pdf"), facecolor=BG)
+    plt.close(fig)
+
+
 FIGURES = {
     "generator": (fig_generator, "circadian_generator.png"),
     "leaderboard_table": (fig_leaderboard_table, "leaderboard.tex"),  # manuscript Table 1
     "leaderboard": (fig_leaderboard, "melanopic_leaderboard.png"),  # docs point-plot
+    "profiles": (fig_profiles, "fig_melanopic_profiles.png"),  # appendix A
     "validation": (fig_validation, "s026_validation.png"),
     "melanopic_colormaps": (fig_melanopic_colormaps, "melanopic_colormaps.png"),
 }
