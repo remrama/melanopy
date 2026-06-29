@@ -122,16 +122,17 @@
 \maketitle
 
 \section*{Abstract}
-A scientific colormap is crafted to be \emph{read} --- perceptually uniform (equal data steps look equal) and robust to colour-vision deficiency (CVD).
-But on a self-luminous display it is also \emph{light}: a large data-fill emits a substantial fraction of the screen's output, and the short-wavelength, melatonin-suppressing (\textbf{melanopic}) content of that light matters whenever a display is a viewer's dominant light source at night --- sleep laboratories, observatories, neonatal intensive care, overnight radiology, and control rooms.
-\textbf{Melanopy} makes a colormap's melanopic content \emph{measurable}, accounting for perceptual uniformity and CVD-safety alongside it rather than layering on top of them.
-All of a display's dependence collapses into \textbf{three per-primary melanopic/photopic coefficients} derived from the CIE S 026:2018 melanopic action spectrum, reducing the melanopic content of any sRGB colour to a weighted sum of three numbers.
-From these we report two luminance-weighted quantities per map: an \textbf{M/P mean} (where the map sits on the axis, normalized so display white = 1) and an \textbf{M/P spread} (how tightly that ratio sits along the ramp).
-Scoring the colormaps people already use yields three findings: a warm, pure sequential map \emph{already exists} (\texttt{copper}, and our \texttt{sodium}); the popular perceptually-uniform maps are \emph{smeared} (viridis and its siblings dump high-melanopic blue at their dark, low-data end); and the genuine gap is a perceptually-uniform, CVD-safe \textbf{alerting} map.
-We fill it with the \textbf{Circadia family}, a one-parameter generator whose single design dial $\alpha$ walks the axis (measured M/P 0.29 $\rightarrow$ 1.73) while holding perceptual uniformity and CVD-recoverability fixed --- by sharing a single monotone-lightness profile across $\alpha$ and letting it steer only chroma.
-We are explicit about scope: we rate a colour's \emph{chromaticity}, not a light \emph{dose}, and the physiological effect of a colormap alone is second-order.
-The contribution is the measurement, the scored index \emph{and the empirical findings it yields}, the constrained generator, and framing melanopic content as a standardized, bidirectional design axis for colormaps --- including an alerting regime with no off-the-shelf equivalent.
-The rater, index, generator, and figures are reproducible from the open-source package.
+Scientific colormaps are designed to be read: perceptually uniform, so equal data steps look equal, and robust to colour-vision deficiency (CVD).
+But a colormap on a self-luminous display is also light.
+Short-wavelength light drives the retinal cells (ipRGCs) that regulate the circadian system and suppress melatonin, so when a display is a viewer's dominant light source at night, as in a sleep laboratory, the spectrum a large data-fill emits is not cosmetic.
+This melanopic content is standardized in lighting (CIE~S~026), but those tools take spectra as input; a colormap is a list of sRGB triples, not a spectrum, and the melanopic axis has not been applied to scientific colormaps.
+
+We bridge that gap in four steps.
+First, we define a melanopic axis for colormaps: a melanopic/photopic ratio (M/P) from three per-primary coefficients, normalized so display white --- the relevant neutral, not daylight --- equals~1, summarized per map by a mean and spread and validated via luox.
+Second, treating melanopic content as a design dimension, we build Circadia, a one-parameter family of sequential colormaps, indexed by melanopic temperature ($\alpha$), that traverses the axis from protective to alerting while holding perceptual uniformity and CVD-recoverability fixed; its endpoints, Sodium and Xenon, are released.
+Third, scoring colormaps in common use places them on the axis: a protective warm map already exists, popular uniform maps are melanopically smeared, and no off-the-shelf alerting map is perceptually uniform and CVD-recoverable --- the end Circadia supplies.
+Fourth, we package the rater and generator as the open-source package \texttt{melanopy}.
+We rate chromaticity, not dose: a colormap's physiological effect is second-order, dominated by room lighting and brightness.
 
 \bigskip
 \noindent {\bf Keywords:} \emph{colormap}, \emph{melanopic}, \emph{visual perception}, \emph{circadian}, \emph{CVD}, \emph{perceptual uniformity}, \emph{scientific visualization}
