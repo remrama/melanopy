@@ -23,7 +23,8 @@ import colorspacious as cs
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
-from matplotlib.colors import ListedColormap, to_rgb
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap, to_rgb
+from matplotlib.lines import Line2D
 
 import melanopy as mp
 from melanopy.coeffs import LUM_W
@@ -708,11 +709,143 @@ def fig_profiles(path):
     plt.close(fig)
 
 
+# --------------------------------------------------------------- mean-spread plane (appendix)
+# The leaderboard (Table 1) ranks by M/P mean alone; this scatter adds the spread on the y-axis so
+# the trade-off the table only tabulates becomes visible. The Circadia anchors trace the low-spread
+# frontier: e.g. Xenon reaches the alerting regime (mean > 1) at a smaller spread than cool.
+def fig_mean_spread(path):
+    """Scatter every leaderboard map at (M/P mean, M/P spread), with the Circadia family curve.
+
+    Mean on x (where a map sits), spread on y (how tightly). Existing maps are circles coloured by
+    their own ramp; the Circadia anchors are stars on the continuous family curve, which hugs the
+    low-spread frontier --- making visible why Xenon is a tighter alerting map than ``cool`` even
+    though its mean is lower.
+    """
+    rows = []
+    for r in _read_csv("leaderboard.csv"):
+        label = r["colormap"]
+        rows.append(
+            {
+                "name": label.replace(" (melanopy)", ""),
+                "mel": "(melanopy)" in label,
+                "mean": float(r["melanopic_ratio"]),
+                "sigma": float(r["mp_spread"]),
+                "swatch": np.clip(_colors_for(label)[192], 0, 1),  # representative colour (~t=0.75)
+            }
+        )
+    by = {r["name"]: r for r in rows}
+
+    sweep = []  # the continuous Circadia family through the plane (anchors are points on it)
+    for a in np.linspace(0, 1, 41):
+        s = mp.rate_colormap(mp.circadia(a))
+        sweep.append([s["melanopic_ratio"], s["mp_spread"]])
+    sweep = np.array(sweep)
+
+    _theme()
+    fig, ax = plt.subplots(figsize=(8.6, 6.2), facecolor=BG)
+    fig.subplots_adjust(left=0.085, right=0.975, top=0.91, bottom=0.10)
+    ax.set_facecolor(PANEL)
+    xlim, ylim = (0.15, 2.28), (-0.07, 1.95)
+
+    ax.axvspan(xlim[0], 1.0, color=AMBER, alpha=0.05)  # protective regime
+    ax.axvspan(1.0, xlim[1], color=BLUE, alpha=0.05)  # alerting regime
+    ax.axvline(1.0, color=INK2, lw=1.0, ls="--")
+    ax.text(1.0, ylim[1] - 0.03, "white\nM/P = 1", color=INK2, fontsize=8, ha="center", va="top")
+    ax.text(
+        xlim[0] + 0.03, ylim[1] - 0.04, "← protective (warm)", color=AMBER, fontsize=9.5, va="top"
+    )
+    ax.text(
+        xlim[1] - 0.03,
+        ylim[1] - 0.04,
+        "alerting (cool) →",
+        color=BLUE,
+        fontsize=9.5,
+        ha="right",
+        va="top",
+    )
+
+    fam = LinearSegmentedColormap.from_list("circ", [AMBER, GREY, BLUE])
+    segs = np.stack([sweep[:-1], sweep[1:]], axis=1)
+    lc = LineCollection(segs, cmap=fam, lw=2.6, zorder=2, alpha=0.85)
+    lc.set_array(np.linspace(0, 1, len(segs)))
+    ax.add_collection(lc)
+
+    ax.plot(  # the comparison the caption calls out: same regime, Xenon tighter
+        [by["xenon"]["mean"], by["cool"]["mean"]],
+        [by["xenon"]["sigma"], by["cool"]["sigma"]],
+        color=INK2,
+        lw=0.9,
+        ls=":",
+        zorder=2,
+    )
+
+    for r in rows:
+        ax.scatter(
+            r["mean"],
+            r["sigma"],
+            s=270 if r["mel"] else 95,
+            marker="*" if r["mel"] else "o",
+            facecolor=r["swatch"],
+            edgecolor=INK,
+            linewidth=1.5 if r["mel"] else 0.8,
+            zorder=5 if r["mel"] else 4,
+        )
+
+    off = {  # label nudges (dx, dy, ha, va) for crowded points; default is up-right
+        "cividis": (0.022, -0.03, "left", "top"),
+        "magma": (-0.022, 0.02, "right", "bottom"),
+        "gray": (0.024, -0.03, "left", "top"),
+        "equilux": (0.03, 0.028, "left", "bottom"),
+        "xenon": (0.03, -0.05, "left", "top"),
+        "winter": (-0.026, 0.0, "right", "center"),
+    }
+    for r in rows:
+        dx, dy, ha, va = off.get(r["name"], (0.024, 0.028, "left", "bottom"))
+        ax.text(
+            r["mean"] + dx,
+            r["sigma"] + dy,
+            r["name"],
+            color=INK,
+            fontsize=8.5,
+            fontweight="bold" if r["mel"] else "normal",
+            ha=ha,
+            va=va,
+            zorder=6,
+        )
+
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.set_xlabel("M/P mean  (axis position; < 1 protective, > 1 alerting)", color=INK2)
+    ax.set_ylabel("M/P spread σ  (lower = tighter, purer ramp)", color=INK2)
+    ax.tick_params(colors=INK2)
+    for sp in ax.spines.values():
+        sp.set_color(HAIR)
+
+    star = Line2D([], [], marker="*", ms=13, ls="none", mfc=GREY, mec=INK, label="Circadia anchor")
+    circ = Line2D([], [], marker="o", ms=8, ls="none", mfc=GREY, mec=INK, label="existing colormap")
+    famh = Line2D([], [], color=BLUE, lw=2.6, label="Circadia family (α: warm → cool)")
+    ax.legend(
+        handles=[star, circ, famh],
+        loc="upper left",
+        bbox_to_anchor=(0.012, 0.96),
+        facecolor=BG,
+        edgecolor=HAIR,
+        fontsize=8.5,
+        labelcolor=INK2,
+        framealpha=0.95,
+    )
+    _title(ax, "The mean–spread plane — ranking by mean (x) alone hides the spread (y)", size=12)
+
+    fig.savefig(path, dpi=200, facecolor=BG)
+    plt.close(fig)
+
+
 FIGURES = {
     "generator": (fig_generator, "circadian_generator.png"),
     "leaderboard_table": (fig_leaderboard_table, "leaderboard.tex"),  # manuscript Table 1
     "leaderboard": (fig_leaderboard, "melanopic_leaderboard.png"),  # docs point-plot
     "profiles": (fig_profiles, "fig_melanopic_profiles.png"),  # appendix A
+    "mean_spread": (fig_mean_spread, "fig_mean_spread.png"),  # appendix B
     "validation": (fig_validation, "s026_validation.png"),
     "melanopic_colormaps": (fig_melanopic_colormaps, "melanopic_colormaps.png"),
 }

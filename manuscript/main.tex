@@ -292,7 +292,7 @@ Near-black positions (which emit almost nothing) are dropped --- leaving $\mathc
 The mean says \emph{where} the map sits (display white = 1; $<1$ protective, $>1$ alerting); the spread says \emph{how tightly} --- a tight $\sigma$ reads as a ``pure'' ramp.
 
 These two are the axis's \emph{measured outputs} --- distinct from the generator's \emph{input} dial introduced in Section~\ref{sec:circadia}.
-They are also independent of each other, and the gap between them is the point.
+They are also independent of each other, and the gap between them is the point (all maps are plotted in this mean--spread plane in Appendix~\ref{app:mean-spread}).
 viridis sits mid-axis (M/P 0.83 --- mildly protective on \emph{average}) yet has a high spread ($\sigma$ 0.56): it dumps high-melanopic blue at its dark, low-data end, so it is \emph{smeared}, not tight.
 A protective mean and a pure ramp are different properties, and a map can have one without the other.
 (Concretely, \texttt{rate\_colormap(viridis)} returns \texttt{melanopic\_ratio = 0.834}, \texttt{mp\_spread = 0.556}, \texttt{range = (0.395, 3.069)}.) % chktex 36
@@ -402,6 +402,7 @@ The scorecard confirms three things.
 A warm, pure protective map already exists in stock \textbf{matplotlib}, so the protective end needs naming and surfacing, not new design.
 The popular perceptually-uniform maps --- viridis and its siblings --- are melanopically \emph{smeared}, dumping high-melanopic blue at their dark, low-data end rather than sitting tight.
 And no off-the-shelf map reaches the alerting end while staying perceptually uniform and CVD-recoverable --- precisely the slot the Circadia endpoints, Sodium and Xenon, now fill.
+Because the table ranks by mean alone, it understates this last point: plotting mean against spread (Appendix~\ref{app:mean-spread}) shows the Circadia anchors holding the low-spread frontier, so \textbf{Xenon} is a tighter alerting map than \texttt{cool} despite its lower mean.
 The ranking is stable across the four display panels (Spearman $\rho \geq 0.99$; per-panel and spectral-robustness detail is deferred to Section~\ref{sec:reproducibility}).
 
 \section{Discussion}\label{sec:discussion}
@@ -481,6 +482,18 @@ Table~\ref{tab:leaderboard} compresses each colormap to a melanopic mean and spr
     \centering
     \includegraphics[width=\textwidth]{fig_melanopic_profiles.png}
     \caption{\textbf{Per-position melanopic profiles --- the profile behind Table~\ref{tab:leaderboard}.} For every colormap, the melanopic ratio at each ramp position: the un-summarized curve whose luminance-weighted height is the M/P mean and whose spread is $\sigma$ in Table~\ref{tab:leaderboard}. \emph{Top (overview):} each map's M/P curve on a shared $\log_2$ axis (white = 1, with protective/alerting shading), coloured by its own colormap with opacity tracking per-position luminance --- so a curve fades exactly where it would otherwise spike at the dark, low-emission end; a thin grey curve beneath shows the true unweighted height, and near-black positions are gaps. Maps are split into three panels by M/P rank to avoid overplotting. \emph{Below:} a triplet per map --- the \textbf{colour} ramp; the per-position \textbf{M/P} on a fixed global $\log_2$ grey scale (black = 0.25, mid-grey = 1, white = 4; near-black / no-emission positions are hatched rather than painted an extreme grey); and the per-position \textbf{emission} (photopic luminance, normalized within each map). Where the M/P strip is bright but the emission strip is dark --- e.g.\ viridis and inferno at their dark ends --- the melanopic ``spike'' carries almost no light: the honest reading of dark-end blue, and the visual form of the chromaticity-not-dose caveat.}\label{fig:profiles}
+\end{figure*}
+
+\section{The mean--spread plane}\label{app:mean-spread}
+\renewcommand{\thefigure}{B\arabic{figure}}
+\setcounter{figure}{0}
+
+Table~\ref{tab:leaderboard} orders colormaps by their M/P mean alone; the spread $\sigma$ is reported alongside but does not enter the ranking. Figure~\ref{fig:mean-spread} places both on one plane --- mean on the horizontal axis (\emph{where} a map sits), spread on the vertical (\emph{how tightly} it sits there) --- so each map's position captures both at once. The Circadia anchors lie on the family's low-spread frontier: \textbf{Xenon} reaches the alerting regime ($\mathrm{M/P} > 1$) at a far smaller spread than \texttt{cool} or \texttt{winter}, which climb higher in mean only by smearing. This is the warm/cool asymmetry of Section~\ref{sec:circadia} seen across the whole index --- a tight alerting ramp and a merely high-mean one are different maps, and a ranking by mean cannot tell them apart.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{fig_mean_spread.png}
+    \caption{\textbf{The mean--spread plane.} Every colormap from Table~\ref{tab:leaderboard} at its M/P mean ($x$; $<1$ protective, $>1$ alerting) and M/P spread $\sigma$ ($y$; lower is a tighter, purer ramp). Circles are existing maps coloured by their own ramp; stars are the Circadia anchors, which sit on the continuous family curve (warm $\to$ cool). The family and \texttt{copper} hold the low-spread frontier, while the popular uniform maps (viridis and siblings) and the rainbows (\texttt{jet}, \texttt{turbo}) sit high in spread. The dotted line marks the comparison in the text: \textbf{Xenon} (mean 1.73, $\sigma$ 0.42) is a tighter alerting map than \texttt{cool} (2.06, 0.58) despite a lower mean, and far tighter than \texttt{winter} (1.76, 1.80).}\label{fig:mean-spread}
 \end{figure*}
 
 \section*{Declarations}
