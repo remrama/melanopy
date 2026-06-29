@@ -197,7 +197,25 @@ This split is a design principle, not a limitation: it tells us to spend the mel
 
 \paragraph{The spectral half: from a spectrum to three coefficients.}
 The melanopic content of light is a standardized quantity, and we adopt the standard rather than approximate it.
-Each spectrum is weighted by the \textbf{CIE S 026:2018 melanopic action spectrum} together with the \textbf{CIE 1931 $2^{\circ}$ $V(\lambda)$ photopic function}, both vendored from the source tables; the ratio of the two integrals is the melanopic/photopic (M/P) ratio that defines the axis.
+For a spectral power distribution $S(\lambda)$, the melanopic-to-photopic ratio is
+\begin{equation}
+  R(S) = \frac{\int S(\lambda)\,s_{\mathrm{mel}}(\lambda)\,\mathrm{d}\lambda}
+              {\int S(\lambda)\,V(\lambda)\,\mathrm{d}\lambda},
+  \label{eq:R}
+\end{equation}
+with $s_{\mathrm{mel}}$ the \textbf{CIE S 026:2018 melanopic action spectrum} and $V$ the \textbf{CIE 1931 $2^{\circ}$ $V(\lambda)$ photopic function}, both vendored from the source tables.
+A display's fixed primaries $P_R, P_G, P_B$ reduce this to three per-primary coefficients,
+\begin{equation}
+  \mu_c = R(P_c), \qquad c\in\{R,G,B\},
+  \label{eq:mu}
+\end{equation}
+the entire display-dependent part of the model.
+We anchor to the standard through the melanopic daylight-efficacy ratio,
+\begin{equation}
+  \mathrm{mel\text{-}DER}(S) = R(S)/R(\mathrm{D65}),
+  \label{eq:melder}
+\end{equation}
+the quantity luox reports ($\mathrm{D65}\equiv 1$).
 The melanopic response peaks at \textbf{490 nm} as expected, and display gray stays pinned at \textbf{1.000} (Fig.~\ref{fig:s026-validation}).
 This is the same weighting the validated luox calculator~\cite{spitschan2021luox} is built on, and we confirm our implementation against it: Melanopy's spectral engine reproduces the CIE S 026 D65 melanopic ELR normalization constant --- the quantity luox is pinned to --- to five significant figures (1.32621 vs 1.3262 mW/lm), and yields the expected melanopic daylight-efficacy ratios (mel-DER) for the standard illuminants (D65 = 1.000 by definition, equal-energy = 0.906, Illuminant A = 0.496).
 Method and a luox-uploadable spectrum set are in the companion \texttt{luox-crosscheck.md}.
@@ -209,13 +227,12 @@ Method and a luox-uploadable spectrum set are in the companion \texttt{luox-cros
 \end{figure}
 
 \par
-Because a display's primaries $P_R, P_G, P_B$ are fixed, the melanopic content of any display colour collapses to a weighted sum of \textbf{three per-primary coefficients} --- the melanopic/photopic ratio of each RGB primary.
-For the representative panel:
+For the representative panel, the three coefficients $\mu_c$ are:
 
 \begin{center}
     \begin{tabular}{lc}
         \toprule
-        primary & coefficient (M/P) \\
+        primary & coefficient $\mu_c$ (M/P) \\
         \midrule
         R & 0.0031 \\
         G & 0.6555 \\
@@ -224,33 +241,54 @@ For the representative panel:
     \end{tabular}
 \end{center}
 
-The blue primary does almost all of the melanopic work, which is precisely why the axis is mostly a warm $\leftrightarrow$ cool story, and why the warm/cool spread asymmetry of Section~\ref{sec:circadia} is fundamental rather than incidental.
-These three numbers are the entire display-dependent part of the model, regression-locked to the validated spectrum so the data and the numbers cannot silently drift apart.
+The blue primary does almost all of the melanopic work --- $\mu_B \gg \mu_G \gg \mu_R$ --- which is precisely why the axis is mostly a warm $\leftrightarrow$ cool story, and why the warm/cool spread asymmetry of Section~\ref{sec:circadia} is fundamental rather than incidental.
+These three numbers are regression-locked to the validated spectrum, so the data and the numbers cannot silently drift apart.
 
 \paragraph{The colormap half: from sRGB to mean and spread.}
 The rater turns a colormap into numbers on the melanopic axis.
-For each colour in the map:
-
-{\small
-\begin{align*}
-\text{sRGB} \rightarrow{}& \text{linearize} \\
-\rightarrow{}& \text{SPD} = r P_R + g P_G + b P_B \\
-\rightarrow{}& Y \ (\text{\textbf{photopic luminance}, exact sRGB weights}) \\
-\rightarrow{}& M \ (\textstyle\int \text{SPD} \cdot s_{\mathrm{mel}}, \ \text{CIE S\,026}) \\
-\rightarrow{}& \text{M/P, normalized so display white} = 1
-\end{align*}
-}
+A colour $\mathbf{c}=(r,g,b)$ in sRGB is linearized by the sRGB transfer function,
+\begin{equation}
+  \tilde c =
+  \begin{cases}
+    c/12.92, & c \le 0.04045,\\
+    \bigl((c+0.055)/1.055\bigr)^{2.4}, & c > 0.04045,
+  \end{cases}
+  \qquad c\in\{r,g,b\},
+  \label{eq:eotf}
+\end{equation}
+and with the exact sRGB luminance weights $w_R,w_G,w_B$ (summing to $1$),
+\begin{equation}
+  Y = \sum_c w_c\,\tilde c, \qquad M = \sum_c w_c\,\tilde c\,\mu_c .
+  \label{eq:YM}
+\end{equation}
+Here $Y$ is the \textbf{photopic luminance} and $M$ its melanopic analogue, each channel weighted by the coefficient $\mu_c$ of \eqref{eq:mu}.
+The melanopic ratio, normalized so display white equals $1$, is
+\begin{equation}
+  \mathrm{M/P}(\mathbf{c}) = \frac{1}{R_{\mathrm{white}}}\frac{M}{Y}
+    = \frac{1}{R_{\mathrm{white}}}
+      \frac{\sum_c w_c\,\tilde c\,\mu_c}{\sum_c w_c\,\tilde c},
+  \qquad R_{\mathrm{white}} = \sum_c w_c\,\mu_c .
+  \label{eq:mp}
+\end{equation}
+The inner factor is a luminance-weighted average of the three $\mu_c$; since $\mu_B \gg \mu_G \gg \mu_R$ the blue primary dominates.
+At white ($\tilde c\equiv 1$), $M/Y = R_{\mathrm{white}}$, so $\mathrm{M/P}=1$ by construction.
+The per-colour SPD $rP_R+gP_G+bP_B$ is therefore conceptual only --- the collapse to \eqref{eq:mp} means it is never formed at runtime.
 
 \par
 \textbf{Two metrics: where the map sits, and how tightly.}
-Both reported quantities are \textbf{luminance-weighted}, and near-black pixels (which emit almost nothing) are dropped --- a pipeline-level decision so that neither number is dominated by the dark end of the ramp.
-A single mean still hides the structure that matters, so the rater reports \textbf{two distinct quantities} (plus the raw per-position range; the full per-position profile behind both is plotted in Appendix~\ref{app:profiles}, Fig.~\ref{fig:profiles}):
-
-\begin{itemize}
-    \item \textbf{M/P mean} --- \emph{where} the map sits: the mean of the per-position ratio (display white = 1; < 1 protective, > 1 alerting).
-    \item \textbf{M/P spread ($\sigma$)} --- \emph{how tightly} it sits: the spread of the per-position ratio along the ramp.
-        A tight spread reads as a ``pure'' ramp.
-\end{itemize}
+A single mean would hide the structure that matters, so the rater reports \textbf{two distinct quantities}, both \textbf{luminance-weighted} (plus the raw per-position range; the full per-position profile behind both is in Appendix~\ref{app:profiles}, Fig.~\ref{fig:profiles}).
+A colormap is colours $\mathbf{c}_i$ at positions $t_i\in[0,1]$, $i=1,\dots,N$, with $\rho_i=\mathrm{M/P}(\mathbf{c}_i)$ and luminance $Y_i$.
+Near-black positions (which emit almost nothing) are dropped --- leaving $\mathcal{E}=\{\,i : Y_i > 0.01\,Y_{\max}\,\}$ so neither number is dominated by the dark end of the ramp --- and the two are luminance-weighted over $\mathcal{E}$:
+\begin{align}
+  \overline{\mathrm{M/P}}
+    &= \frac{\sum_{i\in\mathcal E} Y_i\rho_i}{\sum_{i\in\mathcal E} Y_i}
+    && \text{(M/P mean --- where the map sits),} \label{eq:mean}\\
+  \sigma
+    &= \sqrt{\frac{\sum_{i\in\mathcal E} Y_i(\rho_i-\overline{\mathrm{M/P}})^2}
+                  {\sum_{i\in\mathcal E} Y_i}}
+    && \text{(M/P spread --- how tightly).} \label{eq:spread}
+\end{align}
+The mean says \emph{where} the map sits (display white = 1; $<1$ protective, $>1$ alerting); the spread says \emph{how tightly} --- a tight $\sigma$ reads as a ``pure'' ramp.
 
 These two are the axis's \emph{measured outputs} --- distinct from the generator's \emph{input} dial introduced in Section~\ref{sec:circadia}.
 They are also independent of each other, and the gap between them is the point.
@@ -309,9 +347,17 @@ The anchors carry evocative names while the measured quantities keep the precise
 \par
 \textbf{Why uniformity comes for free.}
 The generator is pure OKLab geometry~\cite{ottosson2020oklab}; it never looks at the melanopic coefficients of Section~\ref{sec:axis}.
-The trick is a \textbf{single monotone-lightness profile shared by every $\alpha$}.
-Lightness (the L of OKLab) increases identically along the ramp for all $\alpha$, and $\alpha$ morphs \emph{only the chroma vector} --- rotating the warm hue path at $\alpha = 0$ to the cool hue path at $\alpha = 1$, with a gamut clamp that reduces chroma (preserving L and hue) wherever a colour would leave sRGB.
-Because lightness does all of the structural work and $\alpha$ only steers chroma, perceptual uniformity and CVD-recoverability hold for \emph{every} $\alpha$, and the \textbf{melanopic ratio is an emergent, monotone function of $\alpha$} (0.29 $\rightarrow$ 1.73) that the generator never computes.
+A \textbf{single monotone lightness profile $L(t)$}, shared by every $\alpha$, is paired with two endpoint chroma paths $\mathbf{ab}_{\mathrm{warm}}(t)$ and $\mathbf{ab}_{\mathrm{cool}}(t)$ in the OKLab $(a,b)$ plane.
+For melanopic temperature $\alpha\in[0,1]$,
+\begin{align}
+  \mathbf{ab}(t,\alpha) &= (1-\alpha)\,\mathbf{ab}_{\mathrm{warm}}(t)
+                          + \alpha\,\mathbf{ab}_{\mathrm{cool}}(t), \label{eq:morph}\\
+  \mathbf{c}(t,\alpha) &= \mathrm{clamp}_{\mathrm{sRGB}}\!\bigl(
+                          \mathrm{OKLab}^{-1}\!\bigl(L(t),\,\mathbf{ab}(t,\alpha)\bigr)\bigr),
+                          \label{eq:gen}
+\end{align}
+where $\mathrm{clamp}_{\mathrm{sRGB}}$ reduces chroma at fixed $L$ and hue for colours outside the gamut.
+Because $L(t)$ is independent of $\alpha$ and $\alpha$ moves only $(a,b)$, perceptual uniformity and CVD-recoverability are governed by $L(t)$ alone and hold for every $\alpha$; the melanopic ratio $\overline{\mathrm{M/P}}(\alpha)$ is emergent and monotone (measured $0.29\to 1.73$), never computed by the generator.
 The axis falls out of the geometry; it is not imposed on it.
 
 \par
@@ -372,10 +418,18 @@ This is a deployment example, not a contribution --- the slider changes how the 
 \subsection{Limitations and honest scope}\label{sec:limitations}
 
 Melanopy's credibility \emph{is} its contribution, so the caveats are stated plainly rather than buried.
+A colormap moves only one factor of the melanopic dose, schematically
+\begin{equation}
+  \text{melanopic dose} \;\sim\;
+  \underbrace{L\,f\,\Omega\,t}_{\text{emission \& geometry}} \times
+  \underbrace{(\mathrm{M/P})}_{\text{chromaticity}} +
+  \underbrace{(\text{ambient})}_{\text{room light}},
+  \label{eq:dose}
+\end{equation}
+with $L$ screen luminance, $f$ screen-fill fraction, $\Omega$ a viewing-geometry term, and $t$ exposure: a colormap moves only the chromaticity factor, while brightness, fill, and room light dominate.
 
 \begin{itemize}
-    \item \textbf{It rates chromaticity, not dose.} We report a colour property, never a light dose or an alertness effect.
-        Actual circadian load is roughly screen \textbf{luminance} $\times$ fraction of screen filled $\times$ viewing distance $\times$ ambient light --- none of which a colormap fixes.
+    \item \textbf{It rates chromaticity, not dose.} We report a colour property, never a light dose or an alertness effect: in \eqref{eq:dose} a colormap touches only the M/P factor.
         If the goal is genuinely to stay alert, the dominant lever is room lighting.
     \item \textbf{Display-primary dependence.} The three coefficients assume a representative panel; real white-LED-LCD, OLED, and wide-gamut displays differ, especially in blue.
         We ship several panel archetypes and let users plug in measured SPDs.
