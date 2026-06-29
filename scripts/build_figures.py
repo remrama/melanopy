@@ -22,12 +22,15 @@ mpl.use("Agg")
 import colorspacious as cs
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import ListedColormap, to_rgb
+from matplotlib.collections import LineCollection
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap, to_rgb
+from matplotlib.lines import Line2D
 
 import melanopy as mp
 from melanopy.coeffs import LUM_W
 
 from _figtheme import LIGHT, THEMES, apply_theme
+from _perceptual import is_cvd_recoverable, is_pu
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "manuscript" / "figures"
@@ -204,7 +207,98 @@ def fig_generator(path):
     plt.close(fig)
 
 
-# ----------------------------------------------------------------------------- leaderboard
+# ----------------------------------------------------------------------------- leaderboard table
+# The leaderboard is a generated LaTeX scorecard (Table 1), not a figure: the manuscript
+# preamble defines \cmap/\mprow/\mpruler/\pass/\fail, and this emits the per-row data plus the
+# 17 ramp strips. The x-domain of \mprow/\mpruler in main.tex is 0..AXIS_DOMAIN_MAX; we assert
+# no per-panel band exceeds it so the table can never silently clip.
+AXIS_DOMAIN_MAX = 2.3
+PANEL_COLS = ("representative", "led_lcd", "oled", "wide_gamut")
+
+
+def _strip_png(colors, path):
+    """Render a colormap ramp as a tight standalone PNG (one leaderboard \\cmap cell)."""
+    fig, ax = plt.subplots(figsize=(2.0, 0.20))
+    ax.imshow(np.clip(colors, 0, 1)[None, :, :], aspect="auto")
+    ax.set_axis_off()
+    fig.savefig(path, dpi=200, bbox_inches="tight", pad_inches=0)
+    plt.close(fig)
+
+
+def _glyph(ok, marginal):
+    """Pass/fail glyph macro call: filled \\pass / open \\fail, with a \\textsuperscript{*} flag."""
+    return (r"\pass" if ok else r"\fail") + (r"\textsuperscript{*}" if marginal else "")
+
+
+def fig_leaderboard_table(path):
+    """Emit the merged leaderboard scorecard — 17 ramp strips + the row data ``leaderboard.tex``.
+
+    Folds the old leaderboard point-plot and the inline prose table into one generated table:
+    ramp strip, dot-and-band M/P axis cell, M/P mean, spread sigma, and the two universal
+    requirements (PU / CVD-recoverable) as filled/open glyphs. Mean/sigma come from
+    ``index/leaderboard.csv`` and the per-panel band from ``index/panel_robustness.csv`` (the
+    scored-index single source of truth); PU and CVD reuse the §3 test criteria via
+    :mod:`_perceptual`. Also writes ``leaderboard_note.tex`` (a caption footnote naming any
+    map within 10% of a threshold) next to ``path``.
+    """
+    figdir = path.parent
+    (figdir / "strips").mkdir(parents=True, exist_ok=True)
+    lb = _read_csv("leaderboard.csv")
+    bands = {r["colormap"]: r for r in _read_csv("panel_robustness.csv")}
+
+    rows, notes, worst_hi = [], [], 0.0
+    for r in sorted(lb, key=lambda r: float(r["melanopic_ratio"])):  # protective -> alerting
+        label = r["colormap"]
+        name = label.replace(" (melanopy)", "")
+        colors = _colors_for(label)
+        _strip_png(colors, figdir / "strips" / f"{name}.png")
+
+        mean, sigma = float(r["melanopic_ratio"]), float(r["mp_spread"])
+        vals = [float(bands[label][p]) for p in PANEL_COLS]
+        lo, hi = min(vals), max(vals)
+        worst_hi = max(worst_hi, hi)
+
+        pu_ok, cov = is_pu(colors)
+        cvd_ok, min_step = is_cvd_recoverable(colors)
+        pu_m = 0.27 <= cov <= 0.33  # within 10% of the 0.30 PU threshold
+        cvd_m = cvd_ok and 0.0 < min_step < 0.01  # passes, but a near-flat (nearly non-mono) step
+
+        m = round(mean, 2)
+        color = "prot" if m < 1.0 else "alert" if m > 1.0 else "neutral"
+        disp = rf"\textbf{{{name}}}" if "(melanopy)" in label else name
+        rows.append(
+            rf"{disp} & \cmap{{strips/{name}}} & "
+            rf"\mprow{{{mean:.2f}}}{{{lo:.2f}}}{{{hi:.2f}}}{{{color}}} & "
+            rf"{mean:.2f} & {sigma:.2f} & {_glyph(pu_ok, pu_m)} & {_glyph(cvd_ok, cvd_m)} \\"
+        )
+        if pu_m:
+            notes.append(rf"\texttt{{{name}}} (CAM02-UCS step CoV {cov:.2f}, PU threshold 0.30)")
+        if cvd_m:
+            notes.append(rf"\texttt{{{name}}} (smallest simulated lightness step {min_step:.3f})")
+
+    if worst_hi > AXIS_DOMAIN_MAX + 1e-9:
+        raise SystemExit(
+            f"per-panel band hi {worst_hi:.3f} exceeds the axis domain {AXIS_DOMAIN_MAX}; "
+            "bump the domain in main.tex (\\mprow/\\mpruler) and AXIS_DOMAIN_MAX"
+        )
+
+    # Wrap the rows in a macro rather than emitting bare `row \\` lines: \input'ing bare rows
+    # straight into the tabular throws "Misplaced \noalign" at the file/alignment seam, so the
+    # manuscript \input's this in the preamble (defining \leaderboardrows) and expands the macro
+    # in the table body, which is in-stream and robust. Same for the marginal-cases footnote
+    # (\input inside a \caption{} argument breaks brace scanning). LF endings to match the repo.
+    rowsrc = r"\newcommand{\leaderboardrows}{%" + "\n" + "\n".join(rows) + "}\n"
+    path.write_text(rowsrc, encoding="utf-8", newline="\n")
+    body = ("Marginal (${}^{*}$): " + "; ".join(notes) + ".") if notes else ""
+    (figdir / "leaderboard_note.tex").write_text(
+        r"\newcommand{\leaderboardnote}{" + body + "}\n", encoding="utf-8", newline="\n"
+    )
+    print(f"  ({len(rows)} rows, {len(rows)} strips, {len(notes)} marginal)")
+
+
+# ------------------------------------------------------------------- leaderboard point-plot (docs)
+# The manuscript folds the leaderboard into Table 1 (fig_leaderboard_table above); this point-plot
+# is retained for the docs site (docs/leaderboard.md), which renders a figure rather than a table.
 def fig_leaderboard(path):
     lb = _read_csv("leaderboard.csv")
     bands = {r["colormap"]: r for r in _read_csv("panel_robustness.csv")}
@@ -435,9 +529,323 @@ def fig_melanopic_colormaps(path):
     plt.close(fig)
 
 
+# --------------------------------------------------------- per-position profiles (appendix)
+# The un-summarized profile behind Table 1: rate_colormap(profile=True) gives, per ramp position,
+# the melanopic ratio (NaN where the colour emits ~nothing) and the photopic luminance (the weight).
+# Table 1's M/P mean is the luminance-weighted height of this curve; sigma is its spread.
+def _spans(mask):
+    """Yield ``(start, end)`` (end-exclusive) index spans where boolean ``mask`` is True."""
+    idx = np.flatnonzero(mask)
+    if not len(idx):
+        return
+    brk = np.flatnonzero(np.diff(idx) > 1)
+    for s, e in zip(np.r_[idx[0], idx[brk + 1]], np.r_[idx[brk], idx[-1]] + 1):
+        yield int(s), int(e)
+
+
+def _mp_gray(ratios):
+    """Per-position M/P -> [0,1] gray on the fixed global log2 scale (0.25->0, 1->0.5, 4->1).
+
+    Log2 because the axis is multiplicative around the white point. NaN (no emission) stays NaN so
+    the strip can hatch it rather than paint an extreme (and meaningless) gray.
+    """
+    return np.clip((np.log2(ratios) + 2.0) / 4.0, 0.0, 1.0)
+
+
+def _profile_strip(ax, img, cmap):
+    """One thin (1 x N) image strip, no ticks, hairline frame."""
+    ax.imshow(img.reshape(1, -1), aspect="auto", cmap=cmap, vmin=0, vmax=1, extent=[0, 1, 0, 1])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for sp in ax.spines.values():
+        sp.set_color(HAIR)
+        sp.set_linewidth(0.4)
+
+
+def _overview(ax, group, gi):
+    """One overview panel: each map's M/P curve coloured by its colormap, faded by luminance."""
+    ax.set_facecolor(PANEL)
+    ax.set_yscale("log", base=2)
+    ax.axhspan(0.22, 1.0, color=AMBER, alpha=0.06)  # protective band
+    ax.axhspan(1.0, 4.4, color=BLUE, alpha=0.06)  # alerting band
+    ax.axhline(1.0, color=INK2, lw=0.8, ls="--")
+    for m in group:
+        pos, mp_, lum = m["pos"], m["mp"], m["lum"]
+        ax.plot(pos, mp_, color=INK2, lw=0.5, alpha=0.45, zorder=1)  # faint full-opacity raw curve
+        pts = np.column_stack([pos, mp_])
+        segs = np.stack([pts[:-1], pts[1:]], axis=1)
+        rgba = ListedColormap(np.clip(m["colors"], 0, 1))(0.5 * (pos[:-1] + pos[1:]))
+        rgba[:, 3] = np.clip(0.5 * (lum[:-1] + lum[1:]) / lum.max(), 0.0, 1.0)  # luminance opacity
+        ok = ~np.isnan(segs).any(axis=(1, 2))  # NaN positions are gaps, not interpolated
+        ax.add_collection(LineCollection(segs[ok], colors=rgba[ok], linewidths=1.6, zorder=2))
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0.22, 4.4)
+    ax.set_yticks([0.25, 0.5, 1, 2, 4])
+    ax.set_yticklabels(["0.25", "0.5", "1", "2", "4"])
+    ax.set_xticks([0, 1])
+    ax.tick_params(colors=INK2, labelsize=8)
+    for sp in ax.spines.values():
+        sp.set_color(HAIR)
+    ax.set_title(f"M/P rank {6 * gi + 1}–{6 * gi + len(group)}", color=INK2, fontsize=9, loc="left")
+    if gi == 0:
+        ax.set_ylabel("melanopic ratio  (log$_2$, white = 1)", color=INK2, fontsize=9)
+
+
+def fig_profiles(path):
+    lb = _read_csv("leaderboard.csv")  # ascending M/P (same order as Table 1)
+    maps = []
+    for r in lb:
+        colors = _colors_for(r["colormap"])
+        p = mp.rate_colormap(colors, profile=True)
+        maps.append(
+            {
+                "name": r["colormap"].replace(" (melanopy)", ""),
+                "colors": colors,
+                "pos": p["positions"],
+                "mp": p["ratios"],
+                "lum": p["luminance"],
+                "mean": float(r["melanopic_ratio"]),
+                "sigma": float(r["mp_spread"]),
+            }
+        )
+
+    gray = plt.cm.gray.copy()
+    gray.set_bad("white")  # NaN cells render white, then get hatched
+    _theme()
+    fig = plt.figure(figsize=(11, 11), facecolor=BG)
+    outer = fig.add_gridspec(
+        2, 1, height_ratios=[1.0, 3.0], hspace=0.22, left=0.06, right=0.97, top=0.91, bottom=0.03
+    )
+    fig.text(
+        0.06,
+        0.965,
+        "Per-position melanopic profiles — the curve Table 1 summarizes "
+        "(M/P mean = luminance-weighted height, $\\sigma$ = spread)",
+        color=INK,
+        fontsize=12,
+    )
+    fig.text(
+        0.06,
+        0.945,
+        "Overview lines coloured by their colormap, opacity $\\propto$ per-position luminance "
+        "(faint = low emission; thin grey curve = true unweighted height)",
+        color=INK2,
+        fontsize=9,
+    )
+
+    # overview line panels (3 groups of ~6 maps by M/P rank, shared log2 y-axis)
+    ov = outer[0].subgridspec(1, 3, wspace=0.16)
+    for gi, group in enumerate((maps[0:6], maps[6:12], maps[12:17])):
+        _overview(fig.add_subplot(ov[gi]), group, gi)
+
+    # per-map triplets: 2 columns x 9 rows (slot 18 holds the M/P scale bar)
+    grid = outer[1].subgridspec(9, 2, hspace=1.05, wspace=0.10)
+    for i, m in enumerate(maps):
+        cell = grid[i % 9, i // 9].subgridspec(3, 1, hspace=0.0)
+        n = len(m["pos"])
+        axc = fig.add_subplot(cell[0])
+        _profile_strip(axc, np.linspace(0, 1, n), ListedColormap(np.clip(m["colors"], 0, 1)))
+        axc.set_title(
+            f"{m['name']}   M/P {m['mean']:.2f} · $\\sigma$ {m['sigma']:.2f}",
+            color=INK,
+            fontsize=8.5,
+            loc="left",
+            pad=2,
+        )
+        axm = fig.add_subplot(cell[1])
+        g = _mp_gray(m["mp"])
+        _profile_strip(axm, np.ma.masked_invalid(g), gray)
+        for s, e in _spans(np.isnan(g)):  # near-black / NaN: hatch, never an extreme gray
+            axm.add_patch(
+                plt.Rectangle(
+                    (s / n, 0),
+                    (e - s) / n,
+                    1,
+                    facecolor="none",
+                    hatch="////",
+                    edgecolor="0.55",
+                    lw=0,
+                )
+            )
+        axe = fig.add_subplot(cell[2])
+        _profile_strip(
+            axe, m["lum"] / (m["lum"].max() or 1.0), gray
+        )  # emission, per-map normalized
+        if i // 9 == 0:
+            for ax_, lab in ((axc, "colour"), (axm, "M/P"), (axe, "emit")):
+                ax_.set_ylabel(
+                    lab, color=INK2, fontsize=6.5, rotation=0, ha="right", va="center", labelpad=9
+                )
+
+    # shared M/P grayscale scale bar in the empty 18th slot
+    sb = fig.add_subplot(grid[8, 1].subgridspec(3, 1, hspace=0.0)[1])
+    sb.imshow(
+        np.linspace(0, 1, 256).reshape(1, -1),
+        aspect="auto",
+        cmap=gray,
+        vmin=0,
+        vmax=1,
+        extent=[0, 1, 0, 1],
+    )
+    sb.set_yticks([])
+    sb.set_xticks([0, 0.5, 1])
+    sb.set_xticklabels(["0.25", "1.0", "4.0"], fontsize=7, color=INK2)
+    sb.tick_params(colors=INK2, length=2)
+    for sp in sb.spines.values():
+        sp.set_color(HAIR)
+        sp.set_linewidth(0.4)
+    sb.set_title("M/P gray scale (global log$_2$)", color=INK2, fontsize=7.5, loc="left", pad=2)
+    sb.text(
+        0.0,
+        -1.6,
+        "hatched = near-black (no emission); emit strip normalized per map",
+        transform=sb.transAxes,
+        color=INK2,
+        fontsize=7,
+    )
+
+    fig.savefig(path, dpi=160, facecolor=BG)
+    fig.savefig(path.with_suffix(".pdf"), facecolor=BG)
+    plt.close(fig)
+
+
+# --------------------------------------------------------------- mean-spread plane (appendix)
+# The leaderboard (Table 1) ranks by M/P mean alone; this scatter adds the spread on the y-axis so
+# the trade-off the table only tabulates becomes visible. The Circadia anchors trace the low-spread
+# frontier: e.g. Xenon reaches the alerting regime (mean > 1) at a smaller spread than cool.
+def fig_mean_spread(path):
+    """Scatter every leaderboard map at (M/P mean, M/P spread), with the Circadia family curve.
+
+    Mean on x (where a map sits), spread on y (how tightly). Existing maps are circles coloured by
+    their own ramp; the Circadia anchors are stars on the continuous family curve, which hugs the
+    low-spread frontier --- making visible why Xenon is a tighter alerting map than ``cool`` even
+    though its mean is lower.
+    """
+    rows = []
+    for r in _read_csv("leaderboard.csv"):
+        label = r["colormap"]
+        rows.append(
+            {
+                "name": label.replace(" (melanopy)", ""),
+                "mel": "(melanopy)" in label,
+                "mean": float(r["melanopic_ratio"]),
+                "sigma": float(r["mp_spread"]),
+                "swatch": np.clip(_colors_for(label)[192], 0, 1),  # representative colour (~t=0.75)
+            }
+        )
+    by = {r["name"]: r for r in rows}
+
+    sweep = []  # the continuous Circadia family through the plane (anchors are points on it)
+    for a in np.linspace(0, 1, 41):
+        s = mp.rate_colormap(mp.circadia(a))
+        sweep.append([s["melanopic_ratio"], s["mp_spread"]])
+    sweep = np.array(sweep)
+
+    _theme()
+    fig, ax = plt.subplots(figsize=(8.6, 6.2), facecolor=BG)
+    fig.subplots_adjust(left=0.085, right=0.975, top=0.91, bottom=0.10)
+    ax.set_facecolor(PANEL)
+    xlim, ylim = (0.15, 2.28), (-0.07, 1.95)
+
+    ax.axvspan(xlim[0], 1.0, color=AMBER, alpha=0.05)  # protective regime
+    ax.axvspan(1.0, xlim[1], color=BLUE, alpha=0.05)  # alerting regime
+    ax.axvline(1.0, color=INK2, lw=1.0, ls="--")
+    ax.text(1.0, ylim[1] - 0.03, "white\nM/P = 1", color=INK2, fontsize=8, ha="center", va="top")
+    ax.text(
+        xlim[0] + 0.03, ylim[1] - 0.04, "← protective (warm)", color=AMBER, fontsize=9.5, va="top"
+    )
+    ax.text(
+        xlim[1] - 0.03,
+        ylim[1] - 0.04,
+        "alerting (cool) →",
+        color=BLUE,
+        fontsize=9.5,
+        ha="right",
+        va="top",
+    )
+
+    fam = LinearSegmentedColormap.from_list("circ", [AMBER, GREY, BLUE])
+    segs = np.stack([sweep[:-1], sweep[1:]], axis=1)
+    lc = LineCollection(segs, cmap=fam, lw=2.6, zorder=2, alpha=0.85)
+    lc.set_array(np.linspace(0, 1, len(segs)))
+    ax.add_collection(lc)
+
+    ax.plot(  # the comparison the caption calls out: same regime, Xenon tighter
+        [by["xenon"]["mean"], by["cool"]["mean"]],
+        [by["xenon"]["sigma"], by["cool"]["sigma"]],
+        color=INK2,
+        lw=0.9,
+        ls=":",
+        zorder=2,
+    )
+
+    for r in rows:
+        ax.scatter(
+            r["mean"],
+            r["sigma"],
+            s=270 if r["mel"] else 95,
+            marker="*" if r["mel"] else "o",
+            facecolor=r["swatch"],
+            edgecolor=INK,
+            linewidth=1.5 if r["mel"] else 0.8,
+            zorder=5 if r["mel"] else 4,
+        )
+
+    off = {  # label nudges (dx, dy, ha, va) for crowded points; default is up-right
+        "cividis": (0.022, -0.03, "left", "top"),
+        "magma": (-0.022, 0.02, "right", "bottom"),
+        "gray": (0.024, -0.03, "left", "top"),
+        "equilux": (0.03, 0.028, "left", "bottom"),
+        "xenon": (0.03, -0.05, "left", "top"),
+        "winter": (-0.026, 0.0, "right", "center"),
+    }
+    for r in rows:
+        dx, dy, ha, va = off.get(r["name"], (0.024, 0.028, "left", "bottom"))
+        ax.text(
+            r["mean"] + dx,
+            r["sigma"] + dy,
+            r["name"],
+            color=INK,
+            fontsize=8.5,
+            fontweight="bold" if r["mel"] else "normal",
+            ha=ha,
+            va=va,
+            zorder=6,
+        )
+
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.set_xlabel("M/P mean  (axis position; < 1 protective, > 1 alerting)", color=INK2)
+    ax.set_ylabel("M/P spread σ  (lower = tighter, purer ramp)", color=INK2)
+    ax.tick_params(colors=INK2)
+    for sp in ax.spines.values():
+        sp.set_color(HAIR)
+
+    star = Line2D([], [], marker="*", ms=13, ls="none", mfc=GREY, mec=INK, label="Circadia anchor")
+    circ = Line2D([], [], marker="o", ms=8, ls="none", mfc=GREY, mec=INK, label="existing colormap")
+    famh = Line2D([], [], color=BLUE, lw=2.6, label="Circadia family (α: warm → cool)")
+    ax.legend(
+        handles=[star, circ, famh],
+        loc="upper left",
+        bbox_to_anchor=(0.012, 0.96),
+        facecolor=BG,
+        edgecolor=HAIR,
+        fontsize=8.5,
+        labelcolor=INK2,
+        framealpha=0.95,
+    )
+    _title(ax, "The mean–spread plane — ranking by mean (x) alone hides the spread (y)", size=12)
+
+    fig.savefig(path, dpi=200, facecolor=BG)
+    plt.close(fig)
+
+
 FIGURES = {
     "generator": (fig_generator, "circadian_generator.png"),
-    "leaderboard": (fig_leaderboard, "melanopic_leaderboard.png"),
+    "leaderboard_table": (fig_leaderboard_table, "leaderboard.tex"),  # manuscript Table 1
+    "leaderboard": (fig_leaderboard, "melanopic_leaderboard.png"),  # docs point-plot
+    "profiles": (fig_profiles, "fig_melanopic_profiles.png"),  # appendix A
+    "mean_spread": (fig_mean_spread, "fig_mean_spread.png"),  # appendix B
     "validation": (fig_validation, "s026_validation.png"),
     "melanopic_colormaps": (fig_melanopic_colormaps, "melanopic_colormaps.png"),
 }

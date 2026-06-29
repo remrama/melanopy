@@ -87,7 +87,7 @@ max-complexity = 10
 convention = "numpy"
 
 [tool.ruff.lint.isort]
-known-local-folder = ["_figtheme"]  # sibling helper imported by scripts/build_*.py
+known-local-folder = ["_figtheme", "_perceptual"]  # sibling helpers imported by scripts/ + tests/
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -103,6 +103,7 @@ files = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["scripts"]  # tests/test_perceptual.py imports scripts/_perceptual.py (shared §3 checks)
 
 [tool.coverage.run]
 source = ["melanopy"]
