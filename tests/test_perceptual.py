@@ -20,8 +20,9 @@ import melanopy as mp
 
 cs = pytest.importorskip("colorspacious")
 
+from _perceptual import is_cvd_recoverable, is_pu  # noqa: E402  (needs colorspacious; see above)
+
 ALPHAS = [0.0, 0.25, 0.5, 0.75, 1.0]
-CVD_TYPES = ["deuteranomaly", "protanomaly", "tritanomaly"]
 
 
 def _ucs(rgb):
@@ -31,16 +32,14 @@ def _ucs(rgb):
 
 @pytest.mark.parametrize("alpha", ALPHAS)
 def test_perceptual_uniformity(alpha):
-    u = _ucs(mp.circadia(alpha))
-    steps = np.linalg.norm(np.diff(u, axis=0), axis=1)
-    assert np.all(np.diff(u[:, 0]) > 0)  # lightness strictly increasing (monotone profile)
-    assert steps.std() / steps.mean() < 0.30  # near-uniform steps (~0.16-0.26 CoV in practice)
+    cmap = mp.circadia(alpha)
+    ok, cov = is_pu(cmap)  # monotone J' + near-uniform steps (CoV < 0.30)
+    assert ok, f"not perceptually uniform (CoV {cov:.3f})"
+    assert np.all(np.diff(_ucs(cmap)[:, 0]) > 0)  # and Circadia is dark -> light by construction
 
 
 @pytest.mark.parametrize("alpha", [0.0, 0.5, 1.0])
-@pytest.mark.parametrize("cvd_type", CVD_TYPES)
-def test_order_recoverable_under_cvd(cvd_type, alpha):
-    space = {"name": "sRGB1+CVD", "cvd_type": cvd_type, "severity": 100}
-    sim = cs.cspace_convert(np.clip(mp.circadia(alpha), 0.0, 1.0), space, "sRGB1")
-    lightness = _ucs(sim)[:, 0]
-    assert np.all(np.diff(lightness) > 0)  # ordering survives the CVD simulation
+def test_order_recoverable_under_cvd(alpha):
+    # order recoverable = J' stays monotone under full-severity deutan/protan/tritan simulation
+    ok, min_step = is_cvd_recoverable(mp.circadia(alpha))
+    assert ok, f"order not recoverable under CVD (smallest lightness step {min_step:.4f})"

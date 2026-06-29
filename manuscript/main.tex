@@ -59,6 +59,37 @@
 \graphicspath{{./figures/}}
 \usepackage[font=small,labelfont=bf,labelsep=period,singlelinecheck=false]{caption}
 
+% Leaderboard scorecard (Table~\ref{tab:leaderboard}): a TikZ dot-and-band M/P axis cell plus
+% shape+luminance-distinct pass/fail glyphs (not colour, so the columns stay legible under CVD).
+% Row data is generated into figures/leaderboard.tex by scripts/build_figures.py. The x-unit is
+% one M/P unit; the dot radius is absolute pt so it stays circular under the stretched axis.
+\usepackage{xcolor}
+\usepackage{tikz}
+\definecolor{prot}{HTML}{C8781F}   % warm / protective
+\definecolor{alert}{HTML}{3B7DD8}  % cool / alerting
+\colorlet{neutral}{black!70}
+\newcommand{\pass}{\ensuremath{\bullet}}  % filled = pass
+\newcommand{\fail}{\ensuremath{\circ}}    % open   = fail
+\newcommand{\cmap}[1]{\raisebox{-2pt}{\includegraphics[width=2.0cm,height=0.20cm]{#1}}}
+% \mprow{mean}{lo}{hi}{colour}: per-panel band (lo..hi) + mean dot on the 0..2.3 M/P axis.
+\newcommand{\mprow}[4]{%
+  \begin{tikzpicture}[x=1.6cm, y=1ex, baseline=-0.5ex]
+    \draw[gray!25,line width=0.3pt] (0,0)--(2.3,0);
+    \draw[gray!55,densely dashed,line width=0.3pt] (1,-1)--(1,1);  % white = 1
+    \draw[#4,line width=2pt,line cap=round] (#2,0)--(#3,0);        % per-panel band
+    \fill[#4] (#1,0) circle (1.5pt);                               % mean dot
+  \end{tikzpicture}}
+\newcommand{\mptick}[2]{\draw[gray!50,line width=0.3pt](#1,0)--(#1,0.5);
+  \node[font=\tiny,text=gray,inner sep=1pt,anchor=south] at (#1,0.5){#2};}
+\newcommand{\mpruler}{%
+  \begin{tikzpicture}[x=1.6cm,y=1ex,baseline=0ex]
+    \draw[gray!50,line width=0.3pt] (0,0)--(2.3,0);
+    \mptick{0}{0}\mptick{1}{1}\mptick{2}{2}
+    \draw[gray!55,densely dashed,line width=0.3pt](1,0)--(1,1.2);
+  \end{tikzpicture}}
+\input{figures/leaderboard.tex}       % defines \leaderboardrows (the generated table body)
+\input{figures/leaderboard_note.tex}  % defines \leaderboardnote (caption footnote for marginal maps)
+
 \usepackage{siunitx}
 % \unit{m/s}
 % \unit{\metre\per\second}
@@ -240,34 +271,24 @@ For exact numbers on a specific monitor, a user plugs that monitor's measured pr
 \subsection{The axis applied to existing colormaps}\label{sec:existing-colormaps}
 
 A rater invites an obvious empirical question --- \emph{where do the colormaps people already use actually land?} --- and answering it decides how much new design is needed at all.
-We scored a representative set on the default panel (display white = 1; regenerable from the package):
+We scored every map on the default panel (display white = 1) and held each to the two universal requirements, collecting both into one scorecard regenerable from the package (Table~\ref{tab:leaderboard}):
 
 \begin{table*}[t]
     \centering
-    \caption{The melanopic leaderboard: a representative set of colormaps scored on the default panel (display white = 1), with M/P mean, M/P spread ($\sigma$), and regime.}\label{tab:leaderboard}
-    \begin{tabular}{lccl}
+    \setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.3}
+    \caption{\textbf{The melanopic leaderboard.} Every colormap in the study on the melanopic axis (display white = 1), with the two universal requirements alongside: the \emph{ramp}; the \emph{M/P axis} cell (dot = M/P mean, bar = per-panel band across the four display archetypes); the M/P mean; the spread $\sigma$; and \textbf{PU} / \textbf{CVD-rec.}\ pass/fail. PU = monotone CAM02-UCS lightness ($J'$) with step-size CoV $< 0.30$; CVD-rec.\ = perceived lightness stays monotone under simulated deuteranopia, protanopia, and tritanopia (Machado et al., severity 100) --- the same checks applied to the Circadia family in Section~\ref{sec:circadia}. $\bullet$~pass, $\circ$~fail; ${}^{*}$~marginal (within 10\% of the PU threshold, or a near-flat CVD lightness step). Filled/open glyphs are used rather than colour so the requirement columns stay legible under CVD. Rows ascend by M/P; the ranking is stable across panels (Spearman $\rho \geq 0.99$). \leaderboardnote}\label{tab:leaderboard}
+    \begin{tabular}{l c c c c c c}
         \toprule
-        colormap & M/P & $\sigma$ (spread) & regime \\
+        & & \makebox[3.68cm]{\footnotesize $\leftarrow$\,protective \hfill alerting\,$\rightarrow$}
+          & & & \multicolumn{2}{c}{requirements} \\
+        \cmidrule(lr){6-7}
+        colormap & ramp & M/P axis & M/P & $\sigma$ & PU & CVD-rec. \\
+        & & \mpruler & & & & \\
         \midrule
-        \textbf{sodium} (Melanopy) & 0.29 & 0.07 & protective, pure \\
-        copper & 0.49 & 0.03 & protective, pure \\
-        inferno & 0.50 & 0.45 & mid, smeared \\
-        cividis & 0.72 & 0.44 & mid, smeared \\
-        viridis & 0.83 & 0.56 & mid, smeared \\
-        \textbf{equilux} (Melanopy) & 1.00 & 0.16 & neutral \\
-        gray & 1.00 & 0.00 & neutral \\
-        Blues & 1.33 & 0.40 & alerting \\
-        \textbf{xenon} (Melanopy) & 1.73 & 0.42 & alerting, $\approx$PU/CVD \\
-        cool & 2.06 & 0.58 & alerting, not PU \\
+        \leaderboardrows
         \bottomrule
     \end{tabular}
 \end{table*}
-
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\columnwidth]{melanopic_leaderboard.png}
-    \caption{The melanopic leaderboard: common colormaps placed on the axis (display white = 1), with per-map M/P mean and M/P spread; per-panel bands show robustness to the display archetype.}\label{fig:melanopic-leaderboard}
-\end{figure}
 
 Three findings fall out:
 

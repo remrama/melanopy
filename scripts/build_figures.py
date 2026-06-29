@@ -28,6 +28,7 @@ import melanopy as mp
 from melanopy.coeffs import LUM_W
 
 from _figtheme import LIGHT, THEMES, apply_theme
+from _perceptual import is_cvd_recoverable, is_pu
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "manuscript" / "figures"
@@ -204,7 +205,98 @@ def fig_generator(path):
     plt.close(fig)
 
 
-# ----------------------------------------------------------------------------- leaderboard
+# ----------------------------------------------------------------------------- leaderboard table
+# The leaderboard is a generated LaTeX scorecard (Table 1), not a figure: the manuscript
+# preamble defines \cmap/\mprow/\mpruler/\pass/\fail, and this emits the per-row data plus the
+# 17 ramp strips. The x-domain of \mprow/\mpruler in main.tex is 0..AXIS_DOMAIN_MAX; we assert
+# no per-panel band exceeds it so the table can never silently clip.
+AXIS_DOMAIN_MAX = 2.3
+PANEL_COLS = ("representative", "led_lcd", "oled", "wide_gamut")
+
+
+def _strip_png(colors, path):
+    """Render a colormap ramp as a tight standalone PNG (one leaderboard \\cmap cell)."""
+    fig, ax = plt.subplots(figsize=(2.0, 0.20))
+    ax.imshow(np.clip(colors, 0, 1)[None, :, :], aspect="auto")
+    ax.set_axis_off()
+    fig.savefig(path, dpi=200, bbox_inches="tight", pad_inches=0)
+    plt.close(fig)
+
+
+def _glyph(ok, marginal):
+    """Pass/fail glyph macro call: filled \\pass / open \\fail, with a \\textsuperscript{*} flag."""
+    return (r"\pass" if ok else r"\fail") + (r"\textsuperscript{*}" if marginal else "")
+
+
+def fig_leaderboard_table(path):
+    """Emit the merged leaderboard scorecard — 17 ramp strips + the row data ``leaderboard.tex``.
+
+    Folds the old leaderboard point-plot and the inline prose table into one generated table:
+    ramp strip, dot-and-band M/P axis cell, M/P mean, spread sigma, and the two universal
+    requirements (PU / CVD-recoverable) as filled/open glyphs. Mean/sigma come from
+    ``index/leaderboard.csv`` and the per-panel band from ``index/panel_robustness.csv`` (the
+    scored-index single source of truth); PU and CVD reuse the §3 test criteria via
+    :mod:`_perceptual`. Also writes ``leaderboard_note.tex`` (a caption footnote naming any
+    map within 10% of a threshold) next to ``path``.
+    """
+    figdir = path.parent
+    (figdir / "strips").mkdir(parents=True, exist_ok=True)
+    lb = _read_csv("leaderboard.csv")
+    bands = {r["colormap"]: r for r in _read_csv("panel_robustness.csv")}
+
+    rows, notes, worst_hi = [], [], 0.0
+    for r in sorted(lb, key=lambda r: float(r["melanopic_ratio"])):  # protective -> alerting
+        label = r["colormap"]
+        name = label.replace(" (melanopy)", "")
+        colors = _colors_for(label)
+        _strip_png(colors, figdir / "strips" / f"{name}.png")
+
+        mean, sigma = float(r["melanopic_ratio"]), float(r["mp_spread"])
+        vals = [float(bands[label][p]) for p in PANEL_COLS]
+        lo, hi = min(vals), max(vals)
+        worst_hi = max(worst_hi, hi)
+
+        pu_ok, cov = is_pu(colors)
+        cvd_ok, min_step = is_cvd_recoverable(colors)
+        pu_m = 0.27 <= cov <= 0.33  # within 10% of the 0.30 PU threshold
+        cvd_m = cvd_ok and 0.0 < min_step < 0.01  # passes, but a near-flat (nearly non-mono) step
+
+        m = round(mean, 2)
+        color = "prot" if m < 1.0 else "alert" if m > 1.0 else "neutral"
+        disp = rf"\textbf{{{name}}}" if "(melanopy)" in label else name
+        rows.append(
+            rf"{disp} & \cmap{{strips/{name}}} & "
+            rf"\mprow{{{mean:.2f}}}{{{lo:.2f}}}{{{hi:.2f}}}{{{color}}} & "
+            rf"{mean:.2f} & {sigma:.2f} & {_glyph(pu_ok, pu_m)} & {_glyph(cvd_ok, cvd_m)} \\"
+        )
+        if pu_m:
+            notes.append(rf"\texttt{{{name}}} (CAM02-UCS step CoV {cov:.2f}, PU threshold 0.30)")
+        if cvd_m:
+            notes.append(rf"\texttt{{{name}}} (smallest simulated lightness step {min_step:.3f})")
+
+    if worst_hi > AXIS_DOMAIN_MAX + 1e-9:
+        raise SystemExit(
+            f"per-panel band hi {worst_hi:.3f} exceeds the axis domain {AXIS_DOMAIN_MAX}; "
+            "bump the domain in main.tex (\\mprow/\\mpruler) and AXIS_DOMAIN_MAX"
+        )
+
+    # Wrap the rows in a macro rather than emitting bare `row \\` lines: \input'ing bare rows
+    # straight into the tabular throws "Misplaced \noalign" at the file/alignment seam, so the
+    # manuscript \input's this in the preamble (defining \leaderboardrows) and expands the macro
+    # in the table body, which is in-stream and robust. Same for the marginal-cases footnote
+    # (\input inside a \caption{} argument breaks brace scanning). LF endings to match the repo.
+    rowsrc = r"\newcommand{\leaderboardrows}{%" + "\n" + "\n".join(rows) + "}\n"
+    path.write_text(rowsrc, encoding="utf-8", newline="\n")
+    body = ("Marginal (${}^{*}$): " + "; ".join(notes) + ".") if notes else ""
+    (figdir / "leaderboard_note.tex").write_text(
+        r"\newcommand{\leaderboardnote}{" + body + "}\n", encoding="utf-8", newline="\n"
+    )
+    print(f"  ({len(rows)} rows, {len(rows)} strips, {len(notes)} marginal)")
+
+
+# ------------------------------------------------------------------- leaderboard point-plot (docs)
+# The manuscript folds the leaderboard into Table 1 (fig_leaderboard_table above); this point-plot
+# is retained for the docs site (docs/leaderboard.md), which renders a figure rather than a table.
 def fig_leaderboard(path):
     lb = _read_csv("leaderboard.csv")
     bands = {r["colormap"]: r for r in _read_csv("panel_robustness.csv")}
@@ -437,7 +529,8 @@ def fig_melanopic_colormaps(path):
 
 FIGURES = {
     "generator": (fig_generator, "circadian_generator.png"),
-    "leaderboard": (fig_leaderboard, "melanopic_leaderboard.png"),
+    "leaderboard_table": (fig_leaderboard_table, "leaderboard.tex"),  # manuscript Table 1
+    "leaderboard": (fig_leaderboard, "melanopic_leaderboard.png"),  # docs point-plot
     "validation": (fig_validation, "s026_validation.png"),
     "melanopic_colormaps": (fig_melanopic_colormaps, "melanopic_colormaps.png"),
 }
