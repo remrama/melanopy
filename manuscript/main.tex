@@ -99,7 +99,7 @@ From these we report two luminance-weighted quantities per map: an \textbf{M/P m
 Scoring the colormaps people already use yields three findings: a warm, pure sequential map \emph{already exists} (\texttt{copper}, and our \texttt{sodium}); the popular perceptually-uniform maps are \emph{smeared} (viridis and its siblings dump high-melanopic blue at their dark, low-data end); and the genuine gap is a perceptually-uniform, CVD-safe \textbf{alerting} map.
 We fill it with the \textbf{Circadia family}, a one-parameter generator whose single design dial $\alpha$ walks the axis (measured M/P 0.29 $\rightarrow$ 1.73) while holding perceptual uniformity and CVD-recoverability fixed --- by sharing a single monotone-lightness profile across $\alpha$ and letting it steer only chroma.
 We are explicit about scope: we rate a colour's \emph{chromaticity}, not a light \emph{dose}, and the physiological effect of a colormap alone is second-order.
-The contribution is the measurement, the scored index \emph{and the empirical findings it yields}, the constrained generator, and surfacing a design dimension the field has not named.
+The contribution is the measurement, the scored index \emph{and the empirical findings it yields}, the constrained generator, and framing melanopic content as a standardized, bidirectional design axis for colormaps --- including an alerting regime with no off-the-shelf equivalent.
 The rater, index, generator, and figures are reproducible from the open-source package.
 
 \bigskip
@@ -123,7 +123,8 @@ In all of these settings the colour content of the large fills can \emph{coopera
 \par
 Colormap craft offers no vocabulary for this.
 Where collections add organizing structure, they sort by \emph{structure} itself (Crameri), by \emph{domain} (cmocean~\cite{thyng2016cmocean}), or by \emph{data type} (ColorBrewer~\cite{harrower2003colorbrewer}) --- \textbf{none by circadian or melanopic content.}
-Perceptual uniformity and CVD-safety are, in effect, the two axes the field already navigates; melanopic content is a further design dimension it has not named, and that empty slot is the opening this paper fills.
+Perceptual uniformity and CVD-safety are, in effect, the two axes the field already navigates; melanopic content is a further design dimension --- one the colormap-design literature has not adopted, even though energy-aware visualization has shown that a physically related (blue-dominated) display axis can drive colormap construction.
+The gap we fill is a \emph{standardized melanopic} axis for scientific colormaps, with a bidirectional framing the energy-minimization view does not support.
 
 \par
 The metrology to fill it already exists.
@@ -351,7 +352,7 @@ This is a statement about the intersection of the melanopic axis with the sRGB g
 \section{Discussion}\label{sec:discussion}
 
 The axis, the index, and the generator are only useful if they change practice without overclaiming.
-This section closes the loop: how the generator's dial behaves as a live control (Section~\ref{sec:reference-app}), what Melanopy deliberately does \emph{not} assert (Section~\ref{sec:limitations}), and how the contribution sits against three mature literatures (Section~\ref{sec:related-work}).
+This section closes the loop: how the generator's dial behaves as a live control (Section~\ref{sec:reference-app}), what Melanopy deliberately does \emph{not} assert (Section~\ref{sec:limitations}), and how the contribution sits against four mature literatures (Section~\ref{sec:related-work}).
 
 \subsection{Reference application: an in-app circadian slider}\label{sec:reference-app}
 
@@ -398,20 +399,27 @@ Melanopy's credibility \emph{is} its contribution, so the caveats are stated pla
     \item \textbf{``CVD-recoverable'', not ``CVD-safe''.} A shared monotone-lightness profile makes \emph{order} recoverable under CVD; we verify that and claim exactly that, no more.
     \item \textbf{The physiological effect is second-order.} The dominant levers are screen brightness, UI background, and room light.
         Melanopy's worth is (a) measurability, (b) the tool and index, (c) surfacing the axis, and (d) a modest \emph{non-interference} claim --- letting large fills cooperate with whatever circadian strategy the room already runs.
-    \item \textbf{Prior-art scope.} The novelty claim rests on a structured related-work pass across three literatures (Section~\ref{sec:related-work}), documented separately, not a full PRISMA systematic review.
+    \item \textbf{Prior-art scope.} The novelty claim rests on a structured related-work pass across four literatures (Section~\ref{sec:related-work}), documented separately, not a full PRISMA systematic review, and acknowledges adjacent display-hardware patents that do not address colormaps.
 \end{itemize}
 
 \subsection{Related work and novelty}\label{sec:related-work}
 
-Three mature fields border this work, and the contribution sits in the gap between them.
+Four mature fields border this work, and the contribution sits in the gap between them.
 (1) \textbf{Melanopic metrology:} CIE S 026~\cite{cie_s026_2018} and validated calculators~\cite{spitschan2021luox} on the $\alpha$-opic framework of Lucas et al.~\cite{lucas2014melanopsin}, with melanopic EDI predicting circadian responses~\cite{brown2020melanopic} --- all operating on SPDs, not colormaps.
 (2) \textbf{Colormap craft:} perceptual uniformity, ordering, and CVD-safety~\cite{smith2015viridis,nunez2018cividis,kovesi2015colourmaps,moreland2009diverging,crameri2020colour}, with collections organized by structure, domain, or data type~\cite{thyng2016cmocean,harrower2003colorbrewer} --- none by melanopic content.
-(3) \textbf{Lighting-domain melanopic modulation}, where the axis idea actually lives, but for lamps and display \emph{hardware}: metameric display tuning that varies melanopic output independent of visual appearance~\cite{allen2018metamerism} (the closest prior art --- a 5-primary VDU for melatonin/alertness experiments, \emph{not} a colormap tool), and OS night-shift filters~\cite{nagare2019nightshift}.
+(3) \textbf{Lighting-domain melanopic modulation}, where the axis idea actually lives, but for lamps and display \emph{hardware}: metameric display tuning that varies melanopic output independent of visual appearance~\cite{allen2018metamerism} (closest prior art on the \emph{melanopic} dimension --- a 5-primary VDU for melatonin/alertness experiments, \emph{not} a colormap tool), and OS night-shift filters~\cite{nagare2019nightshift}.
+(4) \textbf{Energy-aware visualization}, where a non-perceptual, display-physical property is treated as a colormap-design axis: energy-saving colour-scheme design for OLED displays optimizes colormaps to reduce display power.
+GreenVis~\cite{wang2012greenvis} is a multi-objective generator that produces sequential-data colormaps minimizing OLED power for a fixed perceptual-difference budget, evaluating both pre-designed and auto-generated schemes; related work extends this to volume-rendering transfer functions~\cite{chen2016volume} and image-space dimming~\cite{chen2014imagespace}.
+Because OLED power is dominated by the blue subpixel, this axis is physically near-collinear with the melanopic axis --- making it the closest structural analogue to our colormap-construction artifacts, despite a different downstream concern (battery, not melatonin).
 
 \par
-The melanopic axis itself is therefore \emph{not} novel --- it is mature in lighting.
-\textbf{What is novel is the port to scientific colormaps as four specific artifacts:} a melanopic \emph{rater for colormaps}, a \emph{per-data-position} melanopic profile, a \emph{scored index} of existing scientific maps, and a \emph{perceptual-uniformity- and CVD-constrained generator} parameterized by melanopic content.
-We searched the three literatures above and found no precedent for any of the four --- a defensible related-work pass (English-only, without a patent-database sweep), not an exhaustive systematic review.
+Neither building block is itself novel: the melanopic axis is mature in lighting, and the generic move of treating a display-physical property as a colormap-design axis --- with a rater, an evaluation of existing schemes, and a perception-constrained generator --- has precedent in energy-aware visualization.
+Our contribution is their conjunction, plus three specific extensions.
+First, the axis is a \textbf{standardized physiological quantity} (CIE S 026 melanopic, anchored to mel-DER and cross-checked against luox), not a device-specific power model or a generic perceptual-difference budget.
+Second, it is \textbf{bidirectional with no privileged end}: energy-aware design is monotone-minimize and has no reason to produce a high-power map, whereas our generator deliberately walks to the high-melanopic \textbf{alerting} endpoint (Xenon) --- a regime energy-aware work would never target, and which is genuinely unexplored.
+Third, we hold \textbf{CVD-recoverability} as an explicit constraint along the entire axis.
+We found no precedent in the colormap-design or melanopic-metrology literatures for a melanopic rater, per-position profile, scored index, or constrained generator; the closest structural prior art is GreenVis~\cite{wang2012greenvis} (the colormap-construction dimension) and Allen et al.~\cite{allen2018metamerism} (the melanopic dimension), each adjacent along one axis but not their intersection.
+This is a structured related-work pass across four literatures (English-only, without a patent-database sweep); we note that the display-hardware patent space contains adjacent per-pixel melanopic and circadian colour-cast methods, none addressing colormap design.
 
 \section*{Declarations}
 
