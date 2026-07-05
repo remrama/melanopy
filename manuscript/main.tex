@@ -128,7 +128,7 @@ Short-wavelength light drives the retinal cells (ipRGCs) that regulate the circa
 This melanopic content is standardized in lighting (CIE~S~026), but those tools take spectra as input; a colormap is a list of sRGB triples, not a spectrum, and the melanopic axis has not been applied to scientific colormaps.
 
 We bridge that gap in four steps.
-First, we define a melanopic axis for colormaps: a melanopic/photopic ratio (M/P) from three per-primary coefficients, normalized so display white --- the relevant neutral, not daylight --- equals~1, summarized per map by a mean and spread and validated via luox.
+First, we adapt the melanopic/photopic ratio (M/P) --- an established lighting measure --- to colormaps: three per-primary coefficients give an M/P for any sRGB colour, normalized so display white (the relevant neutral, not daylight) equals~1, summarized per map by a mean and spread and validated via luox.
 Second, treating melanopic content as a design dimension, we build Circadia, a one-parameter family of sequential colormaps, indexed by melanopic temperature ($\alpha$), that traverses the axis from protective to alerting while holding perceptual uniformity and CVD-recoverability fixed; its endpoints, Sodium and Xenon, are released.
 Third, scoring colormaps in common use places them on the axis: a protective warm map already exists, popular uniform maps are melanopically smeared, and no off-the-shelf alerting map is perceptually uniform and CVD-recoverable --- the end Circadia supplies.
 Fourth, we package the rater and generator as the open-source package \texttt{melanopy}.
@@ -165,7 +165,7 @@ They do not answer ``where does viridis sit?'', because a colormap is a list of 
 We build directly on this metrology rather than reinventing it; our work is the missing adapter from colormaps to the established melanopic measure.
 
 \par
-We contribute: (i) a \textbf{rater} that scores any colormap on a melanopic axis; (ii) a one-parameter \textbf{generator} that traverses the axis while holding perceptual uniformity and CVD-recoverability fixed; (iii) a \textbf{scored index} of colormaps in common use, which places them on the axis and confirms the gap the generator fills; and (iv) the open-source package \textbf{melanopy} bundling all three.
+We contribute: (i) a \textbf{method for rating colormaps} on the melanopic axis, resting on a per-display \emph{three-coefficient collapse} (all display-dependence reduces to three per-primary M/P numbers, so no runtime spectral integration) and a \emph{mean-plus-spread} decomposition (a single mean hides melanopic ``smearing'', which a luminance-weighted spread catches); (ii) a one-parameter \textbf{generator} that traverses the axis while holding perceptual uniformity and CVD-recoverability fixed; (iii) a \textbf{scored index} of colormaps in common use, which places them on the axis and confirms the gap the generator fills; and (iv) the open-source package \textbf{melanopy} that ships all three.
 The axis and the constrained generator are the headline; the index confirms the landscape rather than motivating it.
 
 \section{The melanopic axis}\label{sec:axis}
@@ -205,6 +205,8 @@ For a spectral power distribution $S(\lambda)$, the melanopic-to-photopic ratio 
   \label{eq:R}
 \end{equation}
 with $s_{\mathrm{mel}}$ the \textbf{CIE S 026:2018 melanopic action spectrum} and $V$ the \textbf{CIE 1931 $2^{\circ}$ $V(\lambda)$ photopic function}, both vendored from the source tables.
+This ratio is not ours to define: $R$ is the established lighting quantity behind the \textbf{melanopic ratio} in the WELL Building Standard's equivalent melanopic lux ($\mathrm{EML}=L\times R$)~\cite{iwbi_well_v2}, resting on the $\alpha$-opic framework of Lucas et al.~\cite{lucas2014melanopsin}, and its computation has been the subject of explicit calls for consistency~\cite{miller2020mp}.
+We \emph{adapt} this established measure to colormaps; we do not introduce it.
 A display's fixed primaries $P_R, P_G, P_B$ reduce this to three per-primary coefficients,
 \begin{equation}
   \mu_c = R(P_c), \qquad c\in\{R,G,B\},
@@ -217,6 +219,7 @@ We anchor to the standard through the melanopic daylight-efficacy ratio,
   \label{eq:melder}
 \end{equation}
 the quantity luox reports ($\mathrm{D65}\equiv 1$).
+Lighting references this ratio to a natural white --- daylight in WELL's melanopic ratio ($R\approx 1.1$), D65 in mel-DER --- whereas we reference the display's own neutral, normalizing so display white $=1$ (\eqref{eq:mp}): for a self-luminous colormap the meaningful zero is the screen's white, not daylight.
 The melanopic response peaks at \textbf{490 nm} as expected, and display gray stays pinned at \textbf{1.000} (Fig.~\ref{fig:s026-validation}).
 This is the same weighting the validated luox calculator~\cite{spitschan2021luox} is built on, and we confirm our implementation against it: Melanopy's spectral engine reproduces the CIE S 026 D65 melanopic ELR normalization constant --- the quantity luox is pinned to --- to five significant figures (1.32621 vs 1.3262 mW/lm), and yields the expected melanopic daylight-efficacy ratios (mel-DER) for the standard illuminants (D65 = 1.000 by definition, equal-energy = 0.906, Illuminant A = 0.496).
 Method and a luox-uploadable spectrum set are in the companion \texttt{luox-crosscheck.md}.
@@ -273,6 +276,7 @@ The melanopic ratio, normalized so display white equals $1$, is
 \end{equation}
 The inner factor is a luminance-weighted average of the three $\mu_c$; since $\mu_B \gg \mu_G \gg \mu_R$ the blue primary dominates.
 At white ($\tilde c\equiv 1$), $M/Y = R_{\mathrm{white}}$, so $\mathrm{M/P}=1$ by construction.
+Written this way, $\mathrm{M/P}(\mathbf c)=(M/Y)/R_{\mathrm{white}}$ is the colour's raw melanopic ratio referenced to that of display white; \textbf{throughout, M/P is normalized to display white} (the field instead names its D65-referenced counterpart mel-DER, rather than subscripting the symbol).
 The per-colour SPD $rP_R+gP_G+bP_B$ is therefore conceptual only --- the collapse to \eqref{eq:mp} means it is never formed at runtime.
 
 \par
@@ -489,12 +493,12 @@ GreenVis~\cite{wang2012greenvis} is a multi-objective generator that produces se
 Because OLED power is dominated by the blue subpixel, this axis is physically near-collinear with the melanopic axis --- making it the closest structural analogue to our colormap-construction artifacts, despite a different downstream concern (battery, not melatonin).
 
 \par
-Neither building block is itself novel: the melanopic axis is mature in lighting, and the generic move of treating a display-physical property as a colormap-design axis --- with a rater, an evaluation of existing schemes, and a perception-constrained generator --- has precedent in energy-aware visualization.
+Neither building block is itself novel: the melanopic axis is mature in lighting, and the generic move of treating a display-physical property as a colormap-design axis --- with a rating method, an evaluation of existing schemes, and a perception-constrained generator --- has precedent in energy-aware visualization.
 Our contribution is their conjunction, plus three specific extensions.
 First, the axis is a \textbf{standardized physiological quantity} (CIE S 026 melanopic, anchored to mel-DER and cross-checked against luox), not a device-specific power model or a generic perceptual-difference budget.
 Second, it is \textbf{bidirectional with no privileged end}: energy-aware design is monotone-minimize and has no reason to produce a high-power map, whereas our generator deliberately walks to the high-melanopic \textbf{alerting} endpoint (Xenon) --- a regime energy-aware work would never target, and which is genuinely unexplored.
 Third, we hold \textbf{CVD-recoverability} as an explicit constraint along the entire axis.
-We found no precedent in the colormap-design or melanopic-metrology literatures for a melanopic rater, per-position profile, scored index, or constrained generator; the closest structural prior art is GreenVis~\cite{wang2012greenvis} (the colormap-construction dimension) and Allen et al.~\cite{allen2018metamerism} (the melanopic dimension), each adjacent along one axis but not their intersection.
+We found no precedent in the colormap-design or melanopic-metrology literatures for a melanopic rating method, per-position profile, scored index, or constrained generator; the closest structural prior art is GreenVis~\cite{wang2012greenvis} (the colormap-construction dimension) and Allen et al.~\cite{allen2018metamerism} (the melanopic dimension), each adjacent along one axis but not their intersection.
 This is a structured related-work pass across four literatures (English-only, without a patent-database sweep); we note that the display-hardware patent space contains adjacent per-pixel melanopic and circadian colour-cast methods, none addressing colormap design.
 
 \subsection{Availability and reproducibility}\label{sec:reproducibility}
@@ -566,7 +570,7 @@ RM would like to thank Claudia Picard-Deland.
 \item[luminance-weighted] Averaged with each colour weighted by its linear photopic luminance, so dim, low-emission steps count less.
 \item[\texttt{luox}] A validated open web platform for CIE S 026 $\alpha$-opic calculations, used to cross-check the spectral engine.
 \item[\texttt{matplotlib}] The Python plotting library whose stock colormaps (viridis, copper, \ldots) appear on the leaderboard.
-\item[\textit{melanopic ratio (M/P)}] A colour's melanopic-to-photopic ratio, normalized so display white $=1$; $<1$ is protective (warm), $>1$ alerting (cool).
+\item[melanopic ratio (M/P)] An established lighting quantity (melanopic-to-photopic ratio), here adapted to colours and normalized so display white $=1$; $<1$ is protective (warm), $>1$ alerting (cool).
 \item[\textit{melanopic temperature}] The Circadia dial $\alpha \in [0,1]$: a dimensionless, panel-independent design \emph{input} (0 protective, 1 alerting), distinct from the measured M/P.
 \item[\textit{Melanopy}] The open-source package introduced here for measuring, scoring, and generating colormaps on the melanopic axis.
 \item[melatonin] The hormone signalling biological night, acutely suppressed by short-wavelength light via ipRGCs.
