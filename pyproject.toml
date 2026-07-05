@@ -102,8 +102,13 @@ ignore_missing_imports = true
 files = ["src"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "src"]
 pythonpath = ["scripts"]  # tests/test_perceptual.py imports scripts/_perceptual.py (shared §3 checks)
+# Run the docstring examples in src/ as doctests so the API-reference outputs can't drift.
+# NUMBER compares floats only to the precision written (so 0.834 matches 0.8339…); importlib
+# import-mode keeps the src/ layout from clashing with the installed package.
+addopts = "--doctest-modules --import-mode=importlib"
+doctest_optionflags = ["NUMBER", "ELLIPSIS"]
 
 [tool.coverage.run]
 source = ["melanopy"]
