@@ -1,13 +1,12 @@
 # Cookbook
 
-Short, copy-pasteable recipes. Each is self-contained — `import melanopy as mp` and go.
-For the functions they draw on, see the [API reference](reference.md).
+Short, copy-pasteable recipes. Each is self-contained — `import melanopy as mp` and go. For the
+functions they draw on, see the [API reference](reference.md).
 
-## Score a handful of colormaps
+## Rank a set of colormaps
 
-Rank any set of Matplotlib colormaps on the melanopic axis. `melanopic_ratio` is the **M/P
-mean** — *where* a map sits (display white = 1.0; < 1 protective, > 1 alerting); `mp_spread` is
-the **M/P spread (σ)** — *how tightly* it sits.
+`melanopic_ratio` is the **M/P mean** — *where* a map sits (display white = 1.0; under 1
+protective, over 1 alerting); `mp_spread` is the **M/P spread (σ)** — *how tightly* it sits.
 
 ```python
 import matplotlib.pyplot as plt
@@ -15,19 +14,25 @@ import numpy as np
 
 import melanopy as mp
 
-for name in ["magma", "viridis", "cividis", "cool", "gray"]:
+for name in ["copper", "magma", "viridis", "cool", "gray"]:
     c = plt.get_cmap(name)(np.linspace(0, 1, 256))[:, :3]
     s = mp.rate_colormap(c)
-    print(f"{name:9s} M/P={s['melanopic_ratio']:.2f}  spread σ={s['mp_spread']:.2f}")
+    print(f"{name:8s} M/P={s['melanopic_ratio']:.2f}  spread σ={s['mp_spread']:.2f}")
 ```
 
-For the full pre-computed ranking of common maps, see [The scored index](leaderboard.md).
+```text
+copper   M/P=0.49  spread σ=0.03
+magma    M/P=0.72  spread σ=0.53
+viridis  M/P=0.83  spread σ=0.56
+cool     M/P=2.06  spread σ=0.58
+gray     M/P=1.00  spread σ=0.00
+```
 
-## Plot a colormap's melanopic profile
+## Read a colormap's melanopic profile
 
-The mean and spread summarize a *curve*. Ask for it with `profile=True` and plot the per-position
-M/P to see *where* a map dumps its blue — viridis spikes at the dark end (high σ, "smeared"),
-while `copper` and `gray` stay flat (low σ, "pure"):
+The mean and spread summarize a *curve*. Ask for it with `profile=True` to see *where* a map dumps
+its blue — viridis spikes at the dark end (high σ, "smeared") while `copper` and `gray` stay flat
+(low σ, "pure").
 
 ```python
 import matplotlib.pyplot as plt
@@ -35,10 +40,26 @@ import numpy as np
 
 import melanopy as mp
 
-fig, ax = plt.subplots()
 for name in ["viridis", "copper", "gray"]:
     c = plt.get_cmap(name)(np.linspace(0, 1, 256))[:, :3]
     p = mp.rate_colormap(c, profile=True)  # adds positions / ratios / luminance
+    print(f"{name:8s} σ={p['mp_spread']:.2f}  dark-end M/P={p['ratios'][10]:.2f}  "
+          f"mid M/P={p['ratios'][128]:.2f}")
+```
+
+```text
+viridis  σ=0.56  dark-end M/P=3.06  mid M/P=1.21
+copper   σ=0.03  dark-end M/P=0.70  mid M/P=0.47
+gray     σ=0.00  dark-end M/P=1.00  mid M/P=1.00
+```
+
+To plot the full curve, use `p["positions"]` (the `[0, 1]` data grid) against `p["ratios"]`:
+
+```python
+fig, ax = plt.subplots()
+for name in ["viridis", "copper", "gray"]:
+    c = plt.get_cmap(name)(np.linspace(0, 1, 256))[:, :3]
+    p = mp.rate_colormap(c, profile=True)
     ax.plot(p["positions"], p["ratios"], label=f"{name} (σ={p['mp_spread']:.2f})")
 ax.axhline(1.0, ls=":", color="grey")  # display white = 1
 ax.set(xlabel="data value", ylabel="melanopic ratio (M/P)", ylim=(0, 2))
@@ -49,69 +70,35 @@ plt.show()
 ## Sweep the Circadia family
 
 `mp.circadia(alpha)` walks the axis from protective (`alpha=0`) to alerting (`alpha=1`) while
-holding lightness uniform. Sweeping `alpha` and rating each step shows the melanopic ratio
-climb monotonically — the dial is an *emergent* property of the OKLab geometry, not a knob
-the generator sets.
+holding lightness uniform. Rating each step shows the melanopic ratio climb monotonically — the
+dial is an *emergent* property of the OKLab geometry, not a knob the generator sets.
 
 ```python
-import matplotlib.pyplot as plt
 import numpy as np
 
 import melanopy as mp
 
-alphas = np.linspace(0, 1, 9)
-fig, axes = plt.subplots(len(alphas), 1, figsize=(7, 5))
-ramp = np.linspace(0, 1, 256).reshape(1, -1)
-for ax, a in zip(axes, alphas):
-    ax.imshow(ramp, aspect="auto", cmap=mp.circadia(a, as_cmap=True))
-    s = mp.rate_colormap(mp.circadia(a))
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_ylabel(
-        f"α={a:.2f}  M/P {s['melanopic_ratio']:.2f}",
-        rotation=0,
-        ha="right",
-        va="center",
-        fontsize=8,
-    )
-fig.tight_layout()
-fig.savefig("circadia_family.png", dpi=120)
+for a in np.linspace(0, 1, 5):
+    ratio, spread = mp.circadia_rating(a)
+    print(f"alpha={a:.2f}  M/P={ratio:.2f}  spread={spread:.2f}")
 ```
 
-## A live α-slider
-
-Recolour a large fill in real time without touching the data — drag the slider, call
-`im.set_cmap`. The SMACC reference app does the same through the pyqtgraph adapter
-(`melanopy.adapters.pyqtgraph`); the idea is identical: move α, recolour the fill, never
-recompute the data.
-
-```python
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.widgets import Slider
-
-import melanopy as mp
-
-z = np.add.outer(np.sin(np.linspace(0, 6, 200)), np.cos(np.linspace(0, 6, 300)))
-z = (z - z.min()) / (z.max() - z.min())
-
-fig, ax = plt.subplots()
-fig.subplots_adjust(bottom=0.2)
-im = ax.imshow(z, cmap=mp.circadia(0.0, as_cmap=True), aspect="auto")
-
-sax = fig.add_axes([0.2, 0.06, 0.6, 0.04])
-slider = Slider(sax, "Circadian (α)", 0.0, 1.0, valinit=0.0)
-slider.on_changed(lambda v: (im.set_cmap(mp.circadia(v, as_cmap=True)), fig.canvas.draw_idle()))
-plt.show()
+```text
+alpha=0.00  M/P=0.29  spread=0.07
+alpha=0.25  M/P=0.58  spread=0.02
+alpha=0.50  M/P=0.92  spread=0.13
+alpha=0.75  M/P=1.33  spread=0.29
+alpha=1.00  M/P=1.73  spread=0.42
 ```
 
-## Label a slider with its rated M/P
+![The Circadia family swept from protective to alerting](assets/figures/circadian_generator.png){ loading=lazy }
+
+## Label a live α-slider with its rated M/P
 
 `α` is a *control* — a geometric position on the OKLab morph — not the melanopic ratio the viewer
 receives, and that ratio is **panel-dependent**. `mp.circadia_rating(α, panel=...)` composes the
-generator and the rater in one call, so the slider can label itself with the *physical* number for
-its configured panel instead of a bare α. This is what drives the SMACC readout, where the fill LUT
-comes from `melanopy.adapters.pyqtgraph.circadia_pyqtgraph(α)`.
+generator and the rater in one call, so a slider can label itself with the *physical* number for its
+configured panel. Drag the slider, call `im.set_cmap` — never recompute the data.
 
 ```python
 import matplotlib.pyplot as plt
@@ -148,23 +135,16 @@ slider.on_changed(on_change)
 plt.show()
 ```
 
-The recompute is cheap (a vectorized 256-point rating), but if you drag fast you can memoize on
-`(round(α, 3), panel)` — α → M/P is a pure function of those two. Present α as the *cause* and M/P
-as its physical *consequence*: M/P is a chromaticity, not a light dose (see
-[Limitations](limitations.md)).
+The initial title reads `α = 0.00  →  M/P = 0.29  (σ = 0.07, representative)`. The SMACC reference
+app does the same through the pyqtgraph adapter (`melanopy.adapters.pyqtgraph`).
 
 ## Match the map to the data
 
-The melanopic axis isn't only a score to evaluate against — it can *carry* the data's meaning.
-When the data is itself circadian, a circadian colormap makes the encoding self-documenting:
-let the alerting end mark wakefulness and the protective end mark sleep, and the map's
-melanopic axis *is* the sleep–wake axis.
-
-![A sleep–wake raster coloured by circadia_sweep, and a circadian alerting-drive curve coloured by circadia_diverging](assets/figures/sleep_wake_demo.png){ loading=lazy }
-
-Reach for the **sequential** `circadia_sweep` for an unsigned state (asleep → awake), and the
-**diverging** `circadia_diverging` for a signed quantity (sleep-promoting ↔ alerting, neutral at
-the zero crossing). The raster:
+The melanopic axis can *carry* the data's meaning, not just score it. When the data is itself
+circadian, let the alerting end mark wakefulness and the protective end mark sleep, and the map's
+melanopic axis *is* the sleep–wake axis. Reach for the **sequential** `circadia_sweep` for an
+unsigned state (asleep → awake), and the **diverging** `circadia_diverging` for a signed quantity
+(sleep-promoting ↔ alerting, neutral at the zero crossing).
 
 ```python
 import matplotlib.pyplot as plt
@@ -184,5 +164,7 @@ plt.imshow(wake, aspect="auto", cmap=mp.circadia_sweep(as_cmap=True), vmin=0, vm
 plt.show()
 ```
 
-The full two-panel figure above — including the `circadia_diverging` alerting-drive curve — is
+![A sleep–wake raster coloured by circadia_sweep, and an alerting-drive curve by circadia_diverging](assets/figures/sleep_wake_demo.png){ loading=lazy }
+
+The full two-panel figure — including the `circadia_diverging` alerting-drive curve — is
 reproducible with `uv run scripts/build_sleep_wake_demo.py`.
