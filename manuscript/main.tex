@@ -408,14 +408,7 @@ The ranking is stable across the four display panels (Spearman $\rho \geq 0.99$;
 \section{Discussion}\label{sec:discussion}
 
 The axis, the generator, and the index are only useful if they change practice without overclaiming.
-This section states what Melanopy deliberately does \emph{not} assert (Section~\ref{sec:limitations}), how the contribution sits against four mature literatures (Section~\ref{sec:related-work}), and how every result is reproducible (Section~\ref{sec:reproducibility}).
-
-\par
-\textbf{Potential applications.}
-The generator's $\alpha$ is most useful as a \emph{live control}: exposed as a slider, it lets a screen's colour temperature move along the melanopic axis during a session without leaving the app.
-Our reference deployment is SMACC, a PyQt6/pyqtgraph sleep- and dream-research tool whose operators watch live EEG spectrograms overnight; $\alpha$ drives the large-fill colormaps (spectrogram, hypnogram density, topographic maps) and optionally the UI accent, while categorical line/scatter views need not react --- their emission is negligible (Section~\ref{sec:axis}).
-Applying the adjustment at the \emph{data $\rightarrow$ colour} step, rather than as a global gamma/LUT warp like \textbf{f.lux} or OS Night Shift, preserves perceptual uniformity and CVD-recoverability by construction: a global framebuffer tint breaks both for every figure on screen, and a spectral shift without dimming does not reliably reduce melatonin suppression anyway~\cite{nagare2019nightshift}.
-This is a deployment example, not a contribution --- the slider changes how the screen \emph{participates in} the room's circadian strategy, never an alertness dial.
+This section first states what Melanopy deliberately does \emph{not} assert (Section~\ref{sec:limitations}) and then, within that honest scope, sketches where the axis could change practice (Section~\ref{sec:applications}); it closes by situating the contribution against four mature literatures (Section~\ref{sec:related-work}) and showing how every result is reproducible (Section~\ref{sec:reproducibility}).
 
 \subsection{Limitations and honest scope}\label{sec:limitations}
 
@@ -444,6 +437,46 @@ with $L$ screen luminance, $f$ screen-fill fraction, $\Omega$ a viewing-geometry
         Melanopy's worth is (a) measurability, (b) the tool and index, (c) surfacing the axis, and (d) a modest \emph{non-interference} claim --- letting large fills cooperate with whatever circadian strategy the room already runs.
     \item \textbf{Prior-art scope.} The novelty claim rests on a structured related-work pass across four literatures (Section~\ref{sec:related-work}), documented separately, not a full PRISMA systematic review, and acknowledges adjacent display-hardware patents that do not address colormaps.
 \end{itemize}
+
+\subsection{Potential applications}\label{sec:applications}
+
+The melanopic axis is a design parameter, not a delivered physiological effect.
+A colormap fixes only the chromaticity factor of the melanopic dose in \eqref{eq:dose}; the dose that reaches an observer's retina multiplies that chromaticity by display luminance, screen-fill, viewing geometry, and duration.
+Every application below is therefore a hypothesis the Circadia family makes \emph{expressible}, not an effect it establishes: whether a deployment delivers a circadian benefit is an empirical question, downstream of the capability this paper provides --- traversing melanopic temperature $\alpha$ while holding perceptual uniformity and CVD-recoverability fixed.
+Recolouring can matter only where the display is a dominant term in that product --- large, bright, close, and viewed for sustained periods --- and where the levers that normally dominate, room lighting and screen brightness, are unavailable or deliberately held fixed.
+Under that condition the same family supplies two opposite interventions, selected by moving along $\alpha$ rather than by switching between unrelated colormaps: a low-$\alpha$ tail that keeps a display beneath an ambient melanopic floor, and a high-$\alpha$ tail that turns an incidental exposure into an intentional one.
+Applied at the \emph{data\,$\rightarrow$\,colour} step, both preserve uniformity and CVD-recoverability by construction, unlike a global gamma/LUT warp (\textbf{f.lux}, OS Night Shift) that tints every figure on screen and, without dimming, does not reliably reduce melatonin suppression anyway~\cite{nagare2019nightshift}.
+
+The setting that motivated \textbf{melanopy}, overnight polysomnography (PSG), exhibits both tails at once.
+The recording room is kept dark for the patient, so ambient light is unavailable as a lever for either party.
+The technologist monitors physiology and the patient through instrument displays and an infrared video feed rather than by direct view of the darkened room, which removes the usual objection to a bright display at night: no scotopic sensitivity is sacrificed, because none is in use.
+Their monitor subtends a large fraction of the visual field at reading distance and runs for the full shift, so its emission is a non-trivial melanopic source at the technologist's own cornea --- and through the circadian nadir a deliberately high-$\alpha$ theme turns that incidental exposure into an acute alerting dose~\cite{lockley2006shortwave}, the lever the dark room otherwise denies them.
+Which screen region carries the dose depends on the view: a raw montage is sparse traces on a background, so background luminance and spectrum dominate and the alerting move is a bright, blue-white background rather than the conventional dark theme; a spectrogram or density spectral array fills the field with the colormap itself, so the alerting move is a high-melanopic ramp.
+This is precisely where our reference deployment, SMACC --- a PyQt6/pyqtgraph sleep- and dream-research tool --- exposes $\alpha$ as a live slider over the large-fill colormaps (spectrogram, hypnogram density, topographic maps), while categorical line and scatter views, whose emission is negligible (Section~\ref{sec:axis}), need not react.
+The same room supports the protective tail pointed the other way: light emitted toward the sleeping patient is a leak to be minimised --- a geometry problem (emission onto the operator, away from the sleeper) combined with a low-$\alpha$ theme on any patient-facing surface.
+This dual use within a single room is the concrete integration target for \textbf{melanopy} in downstream tooling, which we do not evaluate here.
+
+Bedside neuromonitoring generalises the patient-facing case with higher stakes.
+Colour density spectral array and amplitude-integrated EEG are colormap displays that run continuously at the bedside, beside a patient whose circadian system is already under stress and whose environment increasingly reflects cycled-lighting protocols in neonatal intensive care~\cite{morag2024cycled}.
+A protective colormap keeps such a display beneath the ambient melanopic floor the protocol establishes, rather than reintroducing the short-wavelength load the room was designed to exclude.
+Here the target of protection is explicitly the patient rather than the operator, and the colormap complements --- it does not replace --- control of room light and screen placement.
+
+The alerting tail generalises to any role that must hold vigilance through the nadir in a room kept dark or dim by design, where the operator needs no dark-adapted view of an external space.
+Overnight tele-neuromonitoring is the direct sibling of PSG; windowless security and network-operations centres, dispatch floors, and remote-ICU night hubs, often kept dim to control glare across many screens, share the same structure.
+In these settings the display is the only alerting surface the operator controls, and the alerting direction is the physically easy one: blue-white light is at once bright and melanopically efficient, so the intervention rides the brightness--melanopic coupling rather than fighting it, at a cost measured mainly in glare and comfort.
+Because the acute alerting response to short-wavelength light is rapid~\cite{lockley2006shortwave}, an alerting theme is best deployed in bursts --- a sleep-deprived operator can dose through a slump without committing to a full night of maximal short-wavelength exposure, whose phase-shifting one would rather not impose on a rotating worker.
+
+Several further settings meet that same condition without needing individual development:
+\begin{itemize}
+  \item Astronomy control floors, sonar and submarine stations, and other ``rig for red'' environments, where a perceptually uniform low-melanopic red-through-amber ramp could replace crude all-red illumination and recover the ability to read magnitude rather than only presence.
+  \item Self-directed use by a solo on-call engineer or night analyst who deliberately toggles their own display into the alerting tail to stay sharp.
+  \item Deliberately warm, low-lit rooms already provisioned with circadian lighting, where screens are the obvious remaining leak and a protective theme keeps the display under the melanopic budget the lighting has already paid for.
+  \item Shift-scheduling and rostering interfaces, where ``melanopic-aware'' means something different: colour encodes circadian burden as \emph{data} --- flagging quick returns, backward rotations, and nadir-crossing shifts --- rather than managing the display's own emission. This is semantic use of the axis, optimised for communication rather than dose.
+\end{itemize}
+
+These applications inherit every caveat of Section~\ref{sec:limitations}; two hard exclusions bound them further.
+Any role that depends on dark-adapted vision of an external environment --- a ship's bridge watch, an observatory floor, a periscope station --- disqualifies the alerting tail outright, since a bright blue-white display destroys the scotopic vision the task requires; this is the constraint that drove those fields to all-red in the first place, and PSG escapes it only because its ``outside'' is an infrared feed on another screen.
+Diagnostic radiology is likewise calibrated to the DICOM grayscale standard display function, so neither tail may touch the reading itself without violating its luminance requirements; there the levers remain room light and screen area.
 
 \subsection{Related work and novelty}\label{sec:related-work}
 
