@@ -23,6 +23,32 @@ def _white(mp):
 
 
 def melanopic_ratio(rgb, panel="representative"):
+    """Melanopic ratio (M/P) of one or more sRGB colours, normalized so display white = 1.0.
+
+    ``< 1`` is protective (warm, low melatonin drive); ``> 1`` is alerting (cool, blue-rich).
+
+    Parameters
+    ----------
+    rgb : array-like
+        A single ``(3,)`` sRGB colour or an ``(N, 3)`` array, values in ``[0, 1]``.
+    panel : str, optional
+        Display archetype selecting the per-primary coefficients (see :data:`coeffs.PANELS`).
+
+    Returns
+    -------
+    numpy.ndarray
+        The melanopic ratio per input colour.
+
+    Examples
+    --------
+    >>> import melanopy as mp
+    >>> mp.melanopic_ratio([1, 1, 1])  # display white is the unit
+    array([1.])
+    >>> mp.melanopic_ratio([1, 0, 0])  # pure red — protective
+    array([0.002])
+    >>> mp.melanopic_ratio([0, 0, 1])  # pure blue — strongly alerting
+    array([8.695])
+    """
     mp = get_coeffs(panel)
     w = _white(mp)
     lin = _to_linear(np.atleast_2d(rgb))
@@ -57,6 +83,13 @@ def rate_colormap(colors, panel="representative", profile=False):
         ramp. With ``profile=True`` the dict also carries ``positions`` (the ``[0, 1]`` data grid),
         ``ratios`` (per-position M/P, NaN where the colour emits ~nothing), and ``luminance`` (the
         per-position photopic luminance, i.e. the weights) — enough to plot the M/P profile.
+
+    Examples
+    --------
+    >>> import matplotlib.pyplot as plt, numpy as np, melanopy as mp
+    >>> c = plt.get_cmap("viridis")(np.linspace(0, 1, 256))[:, :3]
+    >>> mp.rate_colormap(c)
+    {'melanopic_ratio': 0.834, 'mp_spread': 0.556, 'range': (0.395, 3.069)}
     """
     mp = get_coeffs(panel)
     w = _white(mp)
@@ -104,6 +137,16 @@ def circadia_rating(alpha, *, panel="representative"):
     tuple of float
         ``(melanopic_ratio, mp_spread)`` — the M/P mean (axis position; < 1 protective, > 1
         alerting) and its luminance-weighted spread, both for ``panel``.
+
+    Examples
+    --------
+    >>> import melanopy as mp
+    >>> mp.circadia_rating(0.0)  # Sodium endpoint — protective
+    (0.288, 0.067)
+    >>> mp.circadia_rating(0.55)  # Equilux — circadian-neutral (M/P ≈ 1)
+    (0.999, 0.16)
+    >>> mp.circadia_rating(1.0)  # Xenon endpoint — alerting
+    (1.728, 0.423)
     """
     from .generator import circadia  # local import avoids a generator/rater import cycle
 

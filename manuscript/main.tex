@@ -128,7 +128,7 @@ Short-wavelength light drives the retinal cells (ipRGCs) that regulate the circa
 This melanopic content is standardized in lighting (CIE~S~026), but those tools take spectra as input; a colormap is a list of sRGB triples, not a spectrum, and the melanopic axis has not been applied to scientific colormaps.
 
 We bridge that gap in four steps.
-First, we define a melanopic axis for colormaps: a melanopic/photopic ratio (M/P) from three per-primary coefficients, normalized so display white --- the relevant neutral, not daylight --- equals~1, summarized per map by a mean and spread and validated via luox.
+First, we adapt the melanopic/photopic ratio (M/P) --- an established lighting measure --- to colormaps: three per-primary coefficients give an M/P for any sRGB colour, normalized so display white (the relevant neutral, not daylight) equals~1, summarized per map by a mean and spread and validated via luox.
 Second, treating melanopic content as a design dimension, we build Circadia, a one-parameter family of sequential colormaps, indexed by melanopic temperature ($\alpha$), that traverses the axis from protective to alerting while holding perceptual uniformity and CVD-recoverability fixed; its endpoints, Sodium and Xenon, are released.
 Third, scoring colormaps in common use places them on the axis: a protective warm map already exists, popular uniform maps are melanopically smeared, and no off-the-shelf alerting map is perceptually uniform and CVD-recoverable --- the end Circadia supplies.
 Fourth, we package the rater and generator as the open-source package \texttt{melanopy}.
@@ -165,7 +165,7 @@ They do not answer ``where does viridis sit?'', because a colormap is a list of 
 We build directly on this metrology rather than reinventing it; our work is the missing adapter from colormaps to the established melanopic measure.
 
 \par
-We contribute: (i) a \textbf{rater} that scores any colormap on a melanopic axis; (ii) a one-parameter \textbf{generator} that traverses the axis while holding perceptual uniformity and CVD-recoverability fixed; (iii) a \textbf{scored index} of colormaps in common use, which places them on the axis and confirms the gap the generator fills; and (iv) the open-source package \textbf{melanopy} bundling all three.
+We contribute: (i) a \textbf{method for rating colormaps} on the melanopic axis, resting on a per-display \emph{three-coefficient collapse} (all display-dependence reduces to three per-primary M/P numbers, so no runtime spectral integration) and a \emph{mean-plus-spread} decomposition (a single mean hides melanopic ``smearing'', which a luminance-weighted spread catches); (ii) a one-parameter \textbf{generator} that traverses the axis while holding perceptual uniformity and CVD-recoverability fixed; (iii) a \textbf{scored index} of colormaps in common use, which places them on the axis and confirms the gap the generator fills; and (iv) the open-source package \textbf{melanopy} that ships all three.
 The axis and the constrained generator are the headline; the index confirms the landscape rather than motivating it.
 
 \section{The melanopic axis}\label{sec:axis}
@@ -205,6 +205,8 @@ For a spectral power distribution $S(\lambda)$, the melanopic-to-photopic ratio 
   \label{eq:R}
 \end{equation}
 with $s_{\mathrm{mel}}$ the \textbf{CIE S 026:2018 melanopic action spectrum} and $V$ the \textbf{CIE 1931 $2^{\circ}$ $V(\lambda)$ photopic function}, both vendored from the source tables.
+This ratio is not ours to define: $R$ is the established lighting quantity behind the \textbf{melanopic ratio} in the WELL Building Standard's equivalent melanopic lux ($\mathrm{EML}=L\times R$)~\cite{iwbi_well_v2}, resting on the $\alpha$-opic framework of Lucas et al.~\cite{lucas2014melanopsin}, and its computation has been the subject of explicit calls for consistency~\cite{miller2020mp}.
+We \emph{adapt} this established measure to colormaps; we do not introduce it.
 A display's fixed primaries $P_R, P_G, P_B$ reduce this to three per-primary coefficients,
 \begin{equation}
   \mu_c = R(P_c), \qquad c\in\{R,G,B\},
@@ -217,6 +219,7 @@ We anchor to the standard through the melanopic daylight-efficacy ratio,
   \label{eq:melder}
 \end{equation}
 the quantity luox reports ($\mathrm{D65}\equiv 1$).
+Lighting references this ratio to a natural white --- daylight in WELL's melanopic ratio ($R\approx 1.1$), D65 in mel-DER --- whereas we reference the display's own neutral, normalizing so display white $=1$ (\eqref{eq:mp}): for a self-luminous colormap the meaningful zero is the screen's white, not daylight.
 The melanopic response peaks at \textbf{490 nm} as expected, and display gray stays pinned at \textbf{1.000} (Fig.~\ref{fig:s026-validation}).
 This is the same weighting the validated luox calculator~\cite{spitschan2021luox} is built on, and we confirm our implementation against it: Melanopy's spectral engine reproduces the CIE S 026 D65 melanopic ELR normalization constant --- the quantity luox is pinned to --- to five significant figures (1.32621 vs 1.3262 mW/lm), and yields the expected melanopic daylight-efficacy ratios (mel-DER) for the standard illuminants (D65 = 1.000 by definition, equal-energy = 0.906, Illuminant A = 0.496).
 Method and a luox-uploadable spectrum set are in the companion \texttt{luox-crosscheck.md}.
@@ -273,6 +276,7 @@ The melanopic ratio, normalized so display white equals $1$, is
 \end{equation}
 The inner factor is a luminance-weighted average of the three $\mu_c$; since $\mu_B \gg \mu_G \gg \mu_R$ the blue primary dominates.
 At white ($\tilde c\equiv 1$), $M/Y = R_{\mathrm{white}}$, so $\mathrm{M/P}=1$ by construction.
+Written this way, $\mathrm{M/P}(\mathbf c)=(M/Y)/R_{\mathrm{white}}$ is the colour's raw melanopic ratio referenced to that of display white; \textbf{throughout, M/P is normalized to display white} (the field instead names its D65-referenced counterpart mel-DER, rather than subscripting the symbol).
 The per-colour SPD $rP_R+gP_G+bP_B$ is therefore conceptual only --- the collapse to \eqref{eq:mp} means it is never formed at runtime.
 
 \par
@@ -408,14 +412,7 @@ The ranking is stable across the four display panels (Spearman $\rho \geq 0.99$;
 \section{Discussion}\label{sec:discussion}
 
 The axis, the generator, and the index are only useful if they change practice without overclaiming.
-This section states what Melanopy deliberately does \emph{not} assert (Section~\ref{sec:limitations}), how the contribution sits against four mature literatures (Section~\ref{sec:related-work}), and how every result is reproducible (Section~\ref{sec:reproducibility}).
-
-\par
-\textbf{Potential applications.}
-The generator's $\alpha$ is most useful as a \emph{live control}: exposed as a slider, it lets a screen's colour temperature move along the melanopic axis during a session without leaving the app.
-Our reference deployment is SMACC, a PyQt6/pyqtgraph sleep- and dream-research tool whose operators watch live EEG spectrograms overnight; $\alpha$ drives the large-fill colormaps (spectrogram, hypnogram density, topographic maps) and optionally the UI accent, while categorical line/scatter views need not react --- their emission is negligible (Section~\ref{sec:axis}).
-Applying the adjustment at the \emph{data $\rightarrow$ colour} step, rather than as a global gamma/LUT warp like \textbf{f.lux} or OS Night Shift, preserves perceptual uniformity and CVD-recoverability by construction: a global framebuffer tint breaks both for every figure on screen, and a spectral shift without dimming does not reliably reduce melatonin suppression anyway~\cite{nagare2019nightshift}.
-This is a deployment example, not a contribution --- the slider changes how the screen \emph{participates in} the room's circadian strategy, never an alertness dial.
+This section first states what Melanopy deliberately does \emph{not} assert (Section~\ref{sec:limitations}) and then, within that honest scope, sketches where the axis could change practice (Section~\ref{sec:applications}); it closes by situating the contribution against four mature literatures (Section~\ref{sec:related-work}) and showing how every result is reproducible (Section~\ref{sec:reproducibility}).
 
 \subsection{Limitations and honest scope}\label{sec:limitations}
 
@@ -445,6 +442,46 @@ with $L$ screen luminance, $f$ screen-fill fraction, $\Omega$ a viewing-geometry
     \item \textbf{Prior-art scope.} The novelty claim rests on a structured related-work pass across four literatures (Section~\ref{sec:related-work}), documented separately, not a full PRISMA systematic review, and acknowledges adjacent display-hardware patents that do not address colormaps.
 \end{itemize}
 
+\subsection{Potential applications}\label{sec:applications}
+
+The melanopic axis is a design parameter, not a delivered physiological effect.
+A colormap fixes only the chromaticity factor of the melanopic dose in \eqref{eq:dose}; the dose that reaches an observer's retina multiplies that chromaticity by display luminance, screen-fill, viewing geometry, and duration.
+Every application below is therefore a hypothesis the Circadia family makes \emph{expressible}, not an effect it establishes: whether a deployment delivers a circadian benefit is an empirical question, downstream of the capability this paper provides --- traversing melanopic temperature $\alpha$ while holding perceptual uniformity and CVD-recoverability fixed.
+Recolouring can matter only where the display is a dominant term in that product --- large, bright, close, and viewed for sustained periods --- and where the levers that normally dominate, room lighting and screen brightness, are unavailable or deliberately held fixed.
+Under that condition the same family supplies two opposite interventions, selected by moving along $\alpha$ rather than by switching between unrelated colormaps: a low-$\alpha$ tail that keeps a display beneath an ambient melanopic floor, and a high-$\alpha$ tail that turns an incidental exposure into an intentional one.
+Applied at the \emph{data\,$\rightarrow$\,colour} step, both preserve uniformity and CVD-recoverability by construction, unlike a global gamma/LUT warp (\textbf{f.lux}, OS Night Shift) that tints every figure on screen and, without dimming, does not reliably reduce melatonin suppression anyway~\cite{nagare2019nightshift}.
+
+The setting that motivated \textbf{melanopy}, overnight polysomnography (PSG), exhibits both tails at once.
+The recording room is kept dark for the patient, so ambient light is unavailable as a lever for either party.
+The technologist monitors physiology and the patient through instrument displays and an infrared video feed rather than by direct view of the darkened room, which removes the usual objection to a bright display at night: no scotopic sensitivity is sacrificed, because none is in use.
+Their monitor subtends a large fraction of the visual field at reading distance and runs for the full shift, so its emission is a non-trivial melanopic source at the technologist's own cornea --- and through the circadian nadir a deliberately high-$\alpha$ theme turns that incidental exposure into an acute alerting dose~\cite{lockley2006shortwave}, the lever the dark room otherwise denies them.
+Which screen region carries the dose depends on the view: a raw montage is sparse traces on a background, so background luminance and spectrum dominate and the alerting move is a bright, blue-white background rather than the conventional dark theme; a spectrogram or density spectral array fills the field with the colormap itself, so the alerting move is a high-melanopic ramp.
+This is precisely where our reference deployment, SMACC --- a PyQt6/pyqtgraph sleep- and dream-research tool --- exposes $\alpha$ as a live slider over the large-fill colormaps (spectrogram, hypnogram density, topographic maps), while categorical line and scatter views, whose emission is negligible (Section~\ref{sec:axis}), need not react.
+The same room supports the protective tail pointed the other way: light emitted toward the sleeping patient is a leak to be minimised --- a geometry problem (emission onto the operator, away from the sleeper) combined with a low-$\alpha$ theme on any patient-facing surface.
+This dual use within a single room is the concrete integration target for \textbf{melanopy} in downstream tooling, which we do not evaluate here.
+
+Bedside neuromonitoring generalises the patient-facing case with higher stakes.
+Colour density spectral array and amplitude-integrated EEG are colormap displays that run continuously at the bedside, beside a patient whose circadian system is already under stress and whose environment increasingly reflects cycled-lighting protocols in neonatal intensive care~\cite{morag2024cycled}.
+A protective colormap keeps such a display beneath the ambient melanopic floor the protocol establishes, rather than reintroducing the short-wavelength load the room was designed to exclude.
+Here the target of protection is explicitly the patient rather than the operator, and the colormap complements --- it does not replace --- control of room light and screen placement.
+
+The alerting tail generalises to any role that must hold vigilance through the nadir in a room kept dark or dim by design, where the operator needs no dark-adapted view of an external space.
+Overnight tele-neuromonitoring is the direct sibling of PSG; windowless security and network-operations centres, dispatch floors, and remote-ICU night hubs, often kept dim to control glare across many screens, share the same structure.
+In these settings the display is the only alerting surface the operator controls, and the alerting direction is the physically easy one: blue-white light is at once bright and melanopically efficient, so the intervention rides the brightness--melanopic coupling rather than fighting it, at a cost measured mainly in glare and comfort.
+Because the acute alerting response to short-wavelength light is rapid~\cite{lockley2006shortwave}, an alerting theme is best deployed in bursts --- a sleep-deprived operator can dose through a slump without committing to a full night of maximal short-wavelength exposure, whose phase-shifting one would rather not impose on a rotating worker.
+
+Several further settings meet that same condition without needing individual development:
+\begin{itemize}
+  \item Astronomy control floors, sonar and submarine stations, and other ``rig for red'' environments, where a perceptually uniform low-melanopic red-through-amber ramp could replace crude all-red illumination and recover the ability to read magnitude rather than only presence.
+  \item Self-directed use by a solo on-call engineer or night analyst who deliberately toggles their own display into the alerting tail to stay sharp.
+  \item Deliberately warm, low-lit rooms already provisioned with circadian lighting, where screens are the obvious remaining leak and a protective theme keeps the display under the melanopic budget the lighting has already paid for.
+  \item Shift-scheduling and rostering interfaces, where ``melanopic-aware'' means something different: colour encodes circadian burden as \emph{data} --- flagging quick returns, backward rotations, and nadir-crossing shifts --- rather than managing the display's own emission. This is semantic use of the axis, optimised for communication rather than dose.
+\end{itemize}
+
+These applications inherit every caveat of Section~\ref{sec:limitations}; two hard exclusions bound them further.
+Any role that depends on dark-adapted vision of an external environment --- a ship's bridge watch, an observatory floor, a periscope station --- disqualifies the alerting tail outright, since a bright blue-white display destroys the scotopic vision the task requires; this is the constraint that drove those fields to all-red in the first place, and PSG escapes it only because its ``outside'' is an infrared feed on another screen.
+Diagnostic radiology is likewise calibrated to the DICOM grayscale standard display function, so neither tail may touch the reading itself without violating its luminance requirements; there the levers remain room light and screen area.
+
 \subsection{Related work and novelty}\label{sec:related-work}
 
 Four mature fields border this work, and the contribution sits in the gap between them.
@@ -456,12 +493,12 @@ GreenVis~\cite{wang2012greenvis} is a multi-objective generator that produces se
 Because OLED power is dominated by the blue subpixel, this axis is physically near-collinear with the melanopic axis --- making it the closest structural analogue to our colormap-construction artifacts, despite a different downstream concern (battery, not melatonin).
 
 \par
-Neither building block is itself novel: the melanopic axis is mature in lighting, and the generic move of treating a display-physical property as a colormap-design axis --- with a rater, an evaluation of existing schemes, and a perception-constrained generator --- has precedent in energy-aware visualization.
+Neither building block is itself novel: the melanopic axis is mature in lighting, and the generic move of treating a display-physical property as a colormap-design axis --- with a rating method, an evaluation of existing schemes, and a perception-constrained generator --- has precedent in energy-aware visualization.
 Our contribution is their conjunction, plus three specific extensions.
 First, the axis is a \textbf{standardized physiological quantity} (CIE S 026 melanopic, anchored to mel-DER and cross-checked against luox), not a device-specific power model or a generic perceptual-difference budget.
 Second, it is \textbf{bidirectional with no privileged end}: energy-aware design is monotone-minimize and has no reason to produce a high-power map, whereas our generator deliberately walks to the high-melanopic \textbf{alerting} endpoint (Xenon) --- a regime energy-aware work would never target, and which is genuinely unexplored.
 Third, we hold \textbf{CVD-recoverability} as an explicit constraint along the entire axis.
-We found no precedent in the colormap-design or melanopic-metrology literatures for a melanopic rater, per-position profile, scored index, or constrained generator; the closest structural prior art is GreenVis~\cite{wang2012greenvis} (the colormap-construction dimension) and Allen et al.~\cite{allen2018metamerism} (the melanopic dimension), each adjacent along one axis but not their intersection.
+We found no precedent in the colormap-design or melanopic-metrology literatures for a melanopic rating method, per-position profile, scored index, or constrained generator; the closest structural prior art is GreenVis~\cite{wang2012greenvis} (the colormap-construction dimension) and Allen et al.~\cite{allen2018metamerism} (the melanopic dimension), each adjacent along one axis but not their intersection.
 This is a structured related-work pass across four literatures (English-only, without a patent-database sweep); we note that the display-hardware patent space contains adjacent per-pixel melanopic and circadian colour-cast methods, none addressing colormap design.
 
 \subsection{Availability and reproducibility}\label{sec:reproducibility}
@@ -533,7 +570,7 @@ RM would like to thank Claudia Picard-Deland.
 \item[luminance-weighted] Averaged with each colour weighted by its linear photopic luminance, so dim, low-emission steps count less.
 \item[\texttt{luox}] A validated open web platform for CIE S 026 $\alpha$-opic calculations, used to cross-check the spectral engine.
 \item[\texttt{matplotlib}] The Python plotting library whose stock colormaps (viridis, copper, \ldots) appear on the leaderboard.
-\item[\textit{melanopic ratio (M/P)}] A colour's melanopic-to-photopic ratio, normalized so display white $=1$; $<1$ is protective (warm), $>1$ alerting (cool).
+\item[melanopic ratio (M/P)] An established lighting quantity (melanopic-to-photopic ratio), here adapted to colours and normalized so display white $=1$; $<1$ is protective (warm), $>1$ alerting (cool).
 \item[\textit{melanopic temperature}] The Circadia dial $\alpha \in [0,1]$: a dimensionless, panel-independent design \emph{input} (0 protective, 1 alerting), distinct from the measured M/P.
 \item[\textit{Melanopy}] The open-source package introduced here for measuring, scoring, and generating colormaps on the melanopic axis.
 \item[melatonin] The hormone signalling biological night, acutely suppressed by short-wavelength light via ipRGCs.

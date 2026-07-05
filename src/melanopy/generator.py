@@ -96,7 +96,38 @@ def _cmap(rgb, as_cmap, name, default):
 
 
 def circadia(alpha, n=256, as_cmap=False, name=None):
-    """Return (n,3) sRGB array (default) or a matplotlib ListedColormap for a given alpha."""
+    """One member of the Circadia family — a perceptually-uniform, CVD-safe ramp at dial ``alpha``.
+
+    ``alpha`` sets the warm→cool colour temperature: ``0`` is protective (Sodium, warm, low
+    melanopic), ``1`` is alerting (Xenon, cool, high melanopic), and ``~0.55`` is the M/P ≈ 1
+    crossover. It is the design *input*; read the emergent melanopic ratio back with
+    :func:`circadia_rating` or :func:`rate_colormap`.
+
+    Parameters
+    ----------
+    alpha : float
+        Position on the Circadia axis in ``[0, 1]``.
+    n : int, optional
+        Number of samples in the ramp.
+    as_cmap : bool, optional
+        Return a :class:`matplotlib.colors.ListedColormap` instead of the raw array.
+    name : str, optional
+        Name for the colormap when ``as_cmap=True`` (default ``"circadia_<alpha>"``).
+
+    Returns
+    -------
+    numpy.ndarray or matplotlib.colors.ListedColormap
+        An ``(n, 3)`` sRGB array, or a colormap when ``as_cmap=True``.
+
+    Examples
+    --------
+    >>> import melanopy as mp
+    >>> mp.circadia(0.3).shape
+    (256, 3)
+    >>> cmap = mp.circadia(0.3, as_cmap=True)  # drop-in matplotlib colormap
+    >>> cmap.name
+    'circadia_0.30'
+    """
     ab = (1 - alpha) * _WA + alpha * _CA
     t = np.linspace(0, 1, n)
     Li = np.interp(t, _POS, _L)
@@ -121,6 +152,14 @@ def circadia_sweep(n=256, as_cmap=False, name=None):
     teaching map. The shared monotone OKLab lightness keeps it ordered and CVD-recoverable; the
     positions are calibrated against the rater so M/P is linear in the data value. This is the one
     melanopic-aware generator (via a local import); `circadia` itself stays pure OKLab geometry.
+
+    Examples
+    --------
+    >>> import melanopy as mp
+    >>> mp.circadia_sweep().shape
+    (256, 3)
+    >>> mp.circadia_sweep(as_cmap=True).name
+    'circadia_sweep'
     """
     from .rater import melanopic_ratio  # local import keeps the module pure OKLab geometry
 
@@ -139,6 +178,12 @@ def circadia_diverging(n=256, as_cmap=False, name=None):
     (M/P=1) -> cool Xenon (alerting, M/P>1). Each arm has monotone lightness, but -- like most
     diverging maps -- the arms are told apart across zero by *hue*, so it is NOT
     CVD-order-recoverable; use the sequential maps where CVD-safety matters.
+
+    Examples
+    --------
+    >>> import melanopy as mp
+    >>> mp.circadia_diverging(as_cmap=True).name  # pass to imshow(..., vmin=-x, vmax=x)
+    'circadia_diverging'
     """
     t = np.linspace(-1, 1, n)
     s = np.abs(t)

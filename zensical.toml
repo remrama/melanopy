@@ -16,14 +16,8 @@ edit_uri = "edit/main/docs/"
 
 nav = [
   { "Home" = "index.md" },
-  { "The melanopic axis" = "axis.md" },
-  { "Rating colormaps" = "rating.md" },
-  { "The scored index" = "leaderboard.md" },
-  { "The Circadia family" = "circadia.md" },
-  { "Cookbook" = "cookbook.md" },
-  { "Validation" = "validation.md" },
-  { "Limitations" = "limitations.md" },
   { "API reference" = "reference.md" },
+  { "Cookbook" = "cookbook.md" },
 ]
 
 # ----------------------------------------------------------------------------
@@ -51,9 +45,10 @@ features = [
   "search.highlight",
   "toc.follow",
 ]
+logo = "assets/logo.png"      # the iris mark (scripts/build_logo.py) — header logo
+favicon = "assets/logo.png"   # ...and the browser-tab icon
 
 [project.theme.icon]
-logo = "lucide/sun-moon"
 repo = "fontawesome/brands/github"
 
 # Light mode

@@ -76,7 +76,26 @@ def panel_primaries(kind="representative"):
 
 
 def coefficients_from_primaries(primaries, smel=None, vlam=None):
-    """primaries: dict {'R','G','B'} -> SPD array on WL. Returns per-primary M/P."""
+    """Derive the three per-primary M/P coefficients from measured primary SPDs.
+
+    Parameters
+    ----------
+    primaries : dict
+        ``{'R', 'G', 'B'}`` -> SPD array on :data:`WL` (the 380–780 nm, 1 nm grid).
+    smel, vlam : array-like, optional
+        Override the melanopic action spectrum / V(λ); default to the shipped CIE tables.
+
+    Returns
+    -------
+    dict
+        ``{'R', 'G', 'B'}`` -> the melanopic/photopic ratio of each primary.
+
+    Examples
+    --------
+    >>> from melanopy.spectra import coefficients_from_primaries, panel_primaries
+    >>> coefficients_from_primaries(panel_primaries("representative"))
+    {'R': 0.003, 'G': 0.656, 'B': 10.968}
+    """
     smel = SMEL if smel is None else smel
     vlam = V if vlam is None else vlam
     return {
