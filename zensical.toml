@@ -45,9 +45,10 @@ features = [
   "search.highlight",
   "toc.follow",
 ]
+logo = "assets/logo.png"      # the iris mark (scripts/build_logo.py) — header logo
+favicon = "assets/logo.png"   # ...and the browser-tab icon
 
 [project.theme.icon]
-logo = "lucide/sun-moon"
 repo = "fontawesome/brands/github"
 
 # Light mode
