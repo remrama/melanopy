@@ -250,14 +250,13 @@ These three numbers are regression-locked to the validated spectrum, so the data
 
 \paragraph{The colormap half: from sRGB to mean and spread.}
 The rater turns a colormap into numbers on the melanopic axis.
-A colour $\mathbf{c}=(r,g,b)$ in sRGB is linearized by the sRGB transfer function,
+A colour $\mathbf{c}=(r,g,b)$ in sRGB is linearized channel-wise ($c\in\{r,g,b\}$) by the sRGB transfer function,
 \begin{equation}
   \tilde c =
   \begin{cases}
     c/12.92, & c \le 0.04045,\\
     \bigl((c+0.055)/1.055\bigr)^{2.4}, & c > 0.04045,
   \end{cases}
-  \qquad c\in\{r,g,b\},
   \label{eq:eotf}
 \end{equation}
 and with the exact sRGB luminance weights $w_R,w_G,w_B$ (summing to $1$),
@@ -271,9 +270,9 @@ The melanopic ratio, normalized so display white equals $1$, is
   \mathrm{M/P}(\mathbf{c}) = \frac{1}{R_{\mathrm{white}}}\frac{M}{Y}
     = \frac{1}{R_{\mathrm{white}}}
       \frac{\sum_c w_c\,\tilde c\,\mu_c}{\sum_c w_c\,\tilde c},
-  \qquad R_{\mathrm{white}} = \sum_c w_c\,\mu_c .
   \label{eq:mp}
 \end{equation}
+with the white-point normalizer $R_{\mathrm{white}} = \sum_c w_c\,\mu_c$.
 The inner factor is a luminance-weighted average of the three $\mu_c$; since $\mu_B \gg \mu_G \gg \mu_R$ the blue primary dominates.
 At white ($\tilde c\equiv 1$), $M/Y = R_{\mathrm{white}}$, so $\mathrm{M/P}=1$ by construction.
 Written this way, $\mathrm{M/P}(\mathbf c)=(M/Y)/R_{\mathrm{white}}$ is the colour's raw melanopic ratio referenced to that of display white; \textbf{throughout, M/P is normalized to display white} (the field instead names its D65-referenced counterpart mel-DER, rather than subscripting the symbol).
@@ -287,11 +286,11 @@ Near-black positions (which emit almost nothing) are dropped --- leaving $\mathc
 \begin{align}
   \overline{\mathrm{M/P}}
     &= \frac{\sum_{i\in\mathcal E} Y_i\rho_i}{\sum_{i\in\mathcal E} Y_i}
-    && \text{(M/P mean --- where the map sits),} \label{eq:mean}\\
+       \quad\text{(mean)}, \label{eq:mean}\\
   \sigma
     &= \sqrt{\frac{\sum_{i\in\mathcal E} Y_i(\rho_i-\overline{\mathrm{M/P}})^2}
                   {\sum_{i\in\mathcal E} Y_i}}
-    && \text{(M/P spread --- how tightly).} \label{eq:spread}
+       \quad\text{(spread)}. \label{eq:spread}
 \end{align}
 The mean says \emph{where} the map sits (display white = 1; $<1$ protective, $>1$ alerting); the spread says \emph{how tightly} --- a tight $\sigma$ reads as a ``pure'' ramp.
 
@@ -419,8 +418,8 @@ This section first states what Melanopy deliberately does \emph{not} assert (Sec
 Melanopy's credibility \emph{is} its contribution, so the caveats are stated plainly rather than buried.
 A colormap moves only one factor of the melanopic dose, schematically
 \begin{equation}
-  \text{melanopic dose} \;\sim\;
-  \underbrace{L\,f\,\Omega\,t}_{\text{emission \& geometry}} \times
+  \text{melanopic dose} \sim
+  \underbrace{L\,f\,\Omega\,t}_{\text{emission, geometry}} \times
   \underbrace{(\mathrm{M/P})}_{\text{chromaticity}} +
   \underbrace{(\text{ambient})}_{\text{room light}},
   \label{eq:dose}
