@@ -78,15 +78,15 @@
     \draw[gray!55,densely dashed,line width=0.3pt] (1,-1)--(1,1);  % white = 1
     \draw[#4,line width=2pt,line cap=round] (#2,0)--(#3,0);        % per-panel band
     \fill[#4] (#1,0) circle (1.5pt);                               % mean dot
-  \end{tikzpicture}}
-\newcommand{\mptick}[2]{\draw[gray!50,line width=0.3pt](#1,0)--(#1,0.5);
+  \end{tikzpicture}}  % chktex 31
+\newcommand{\mptick}[2]{\draw[gray!50,line width=0.3pt] (#1,0)--(#1,0.5); % chktex 36
   \node[font=\tiny,text=gray,inner sep=1pt,anchor=south] at (#1,0.5){#2};}
 \newcommand{\mpruler}{%
   \begin{tikzpicture}[x=1.6cm,y=1ex,baseline=0ex]
     \draw[gray!50,line width=0.3pt] (0,0)--(2.3,0);
     \mptick{0}{0}\mptick{1}{1}\mptick{2}{2}
-    \draw[gray!55,densely dashed,line width=0.3pt](1,0)--(1,1.2);
-  \end{tikzpicture}}
+    \draw[gray!55,densely dashed,line width=0.3pt] (1,0)--(1,1.2);
+  \end{tikzpicture}}  % chktex 31
 \input{figures/leaderboard.tex}       % defines \leaderboardrows (the generated table body)
 \input{figures/leaderboard_note.tex}  % defines \leaderboardnote (caption footnote for marginal maps)
 
@@ -250,14 +250,13 @@ These three numbers are regression-locked to the validated spectrum, so the data
 
 \paragraph{The colormap half: from sRGB to mean and spread.}
 The rater turns a colormap into numbers on the melanopic axis.
-A colour $\mathbf{c}=(r,g,b)$ in sRGB is linearized by the sRGB transfer function,
+A colour $\mathbf{c}=(r,g,b)$ in sRGB is linearized channel-wise ($c\in\{r,g,b\}$) by the sRGB transfer function,
 \begin{equation}
   \tilde c =
   \begin{cases}
     c/12.92, & c \le 0.04045,\\
-    \bigl((c+0.055)/1.055\bigr)^{2.4}, & c > 0.04045,
+    \bigl((c+0.055)/1.055\bigr)^{2.4}, & c > 0.04045, % chktex 3
   \end{cases}
-  \qquad c\in\{r,g,b\},
   \label{eq:eotf}
 \end{equation}
 and with the exact sRGB luminance weights $w_R,w_G,w_B$ (summing to $1$),
@@ -265,19 +264,19 @@ and with the exact sRGB luminance weights $w_R,w_G,w_B$ (summing to $1$),
   Y = \sum_c w_c\,\tilde c, \qquad M = \sum_c w_c\,\tilde c\,\mu_c .
   \label{eq:YM}
 \end{equation}
-Here $Y$ is the \textbf{photopic luminance} and $M$ its melanopic analogue, each channel weighted by the coefficient $\mu_c$ of \eqref{eq:mu}.
+Here $Y$ is the \textbf{photopic luminance} and $M$ its melanopic analogue, each channel weighted by the coefficient $\mu_c$ of~\eqref{eq:mu}.
 The melanopic ratio, normalized so display white equals $1$, is
 \begin{equation}
   \mathrm{M/P}(\mathbf{c}) = \frac{1}{R_{\mathrm{white}}}\frac{M}{Y}
     = \frac{1}{R_{\mathrm{white}}}
       \frac{\sum_c w_c\,\tilde c\,\mu_c}{\sum_c w_c\,\tilde c},
-  \qquad R_{\mathrm{white}} = \sum_c w_c\,\mu_c .
   \label{eq:mp}
 \end{equation}
+with the white-point normalizer $R_{\mathrm{white}} = \sum_c w_c\,\mu_c$.
 The inner factor is a luminance-weighted average of the three $\mu_c$; since $\mu_B \gg \mu_G \gg \mu_R$ the blue primary dominates.
 At white ($\tilde c\equiv 1$), $M/Y = R_{\mathrm{white}}$, so $\mathrm{M/P}=1$ by construction.
 Written this way, $\mathrm{M/P}(\mathbf c)=(M/Y)/R_{\mathrm{white}}$ is the colour's raw melanopic ratio referenced to that of display white; \textbf{throughout, M/P is normalized to display white} (the field instead names its D65-referenced counterpart mel-DER, rather than subscripting the symbol).
-The per-colour SPD $rP_R+gP_G+bP_B$ is therefore conceptual only --- the collapse to \eqref{eq:mp} means it is never formed at runtime.
+The per-colour SPD $rP_R+gP_G+bP_B$ is therefore conceptual only --- the collapse to~\eqref{eq:mp} means it is never formed at runtime.
 
 \par
 \textbf{Two metrics: where the map sits, and how tightly.}
@@ -287,16 +286,16 @@ Near-black positions (which emit almost nothing) are dropped --- leaving $\mathc
 \begin{align}
   \overline{\mathrm{M/P}}
     &= \frac{\sum_{i\in\mathcal E} Y_i\rho_i}{\sum_{i\in\mathcal E} Y_i}
-    && \text{(M/P mean --- where the map sits),} \label{eq:mean}\\
+       \quad\text{(mean)}, \label{eq:mean}\\
   \sigma
-    &= \sqrt{\frac{\sum_{i\in\mathcal E} Y_i(\rho_i-\overline{\mathrm{M/P}})^2}
+    &= \sqrt{\frac{\sum_{i\in\mathcal E} Y_i(\rho_i-\overline{\mathrm{M/P}})^2}% chktex 3
                   {\sum_{i\in\mathcal E} Y_i}}
-    && \text{(M/P spread --- how tightly).} \label{eq:spread}
+       \quad\text{(spread)}. \label{eq:spread}
 \end{align}
 The mean says \emph{where} the map sits (display white = 1; $<1$ protective, $>1$ alerting); the spread says \emph{how tightly} --- a tight $\sigma$ reads as a ``pure'' ramp.
 
 These two are the axis's \emph{measured outputs} --- distinct from the generator's \emph{input} dial introduced in Section~\ref{sec:circadia}.
-They are also independent of each other, and the gap between them is the point (all maps are plotted in this mean--spread plane in Appendix~\ref{app:mean-spread}).
+They are also independent of each other, and the gap between them is the point (all maps are plotted in this mean-spread plane in Appendix~\ref{app:mean-spread}).
 viridis sits mid-axis (M/P 0.83 --- mildly protective on \emph{average}) yet has a high spread ($\sigma$ 0.56): it dumps high-melanopic blue at its dark, low-data end, so it is \emph{smeared}, not tight.
 A protective mean and a pure ramp are different properties, and a map can have one without the other.
 (Concretely, \texttt{rate\_colormap(viridis)} returns \texttt{melanopic\_ratio = 0.834}, \texttt{mp\_spread = 0.556}, \texttt{range = (0.395, 3.069)}.) % chktex 36
@@ -388,7 +387,7 @@ We scored every map on the default panel (display white = 1) and held each to th
 \begin{table*}[!t]
     \centering
     \setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.3}
-    \caption{\textbf{The melanopic leaderboard.} Every colormap in the study on the melanopic axis (display white = 1), with the two universal requirements alongside: the \emph{ramp}; the \emph{M/P axis} cell (dot = M/P mean, bar = per-panel band across the four display archetypes); the M/P mean; the spread $\sigma$; and \textbf{PU} / \textbf{CVD-rec.}\ pass/fail. PU = monotone CAM02-UCS lightness ($J'$) with step-size CoV $< 0.30$; CVD-rec.\ = perceived lightness stays monotone under simulated deuteranopia, protanopia, and tritanopia (Machado et al., severity 100) --- the same checks applied to the Circadia family in Section~\ref{sec:circadia}. $\bullet$~pass, $\circ$~fail; ${}^{*}$~marginal (within 10\% of the PU threshold, or a near-flat CVD lightness step). Filled/open glyphs are used rather than colour so the requirement columns stay legible under CVD. Rows ascend by M/P; the ranking is stable across panels (Spearman $\rho \geq 0.99$). \leaderboardnote}\label{tab:leaderboard}
+    \caption{\textbf{The melanopic leaderboard.} Every colormap in the study on the melanopic axis (display white = 1), with the two universal requirements alongside: the \emph{ramp}; the \emph{M/P axis} cell (dot = M/P mean, bar = per-panel band across the four display archetypes); the M/P mean; the spread $\sigma$; and \textbf{PU} / \textbf{CVD-rec.}\ pass/fail. PU = monotone CAM02-UCS lightness ($J'$) with step-size CoV $< 0.30$; CVD-rec.\ = perceived lightness stays monotone under simulated deuteranopia, protanopia, and tritanopia (Machado et al., severity 100) --- the same checks applied to the Circadia family in Section~\ref{sec:circadia}. $\bullet$~pass, $\circ$~fail; ${}^{*}$~marginal (within 10\% of the PU threshold, or a near-flat CVD lightness step). Filled/open glyphs are used rather than colour so the requirement columns stay legible under CVD. Rows ascend by M/P; the ranking is stable across panels (Spearman $\rho \geq 0.99$). \leaderboardnote}\label{tab:leaderboard} % chktex 12
     \begin{tabular}{l c c c c c c}
         \toprule
         & & \makebox[3.68cm]{\footnotesize $\leftarrow$\,protective \hfill alerting\,$\rightarrow$}
@@ -419,8 +418,8 @@ This section first states what Melanopy deliberately does \emph{not} assert (Sec
 Melanopy's credibility \emph{is} its contribution, so the caveats are stated plainly rather than buried.
 A colormap moves only one factor of the melanopic dose, schematically
 \begin{equation}
-  \text{melanopic dose} \;\sim\;
-  \underbrace{L\,f\,\Omega\,t}_{\text{emission \& geometry}} \times
+  \text{melanopic dose} \sim
+  \underbrace{L\,f\,\Omega\,t}_{\text{emission, geometry}} \times
   \underbrace{(\mathrm{M/P})}_{\text{chromaticity}} +
   \underbrace{(\text{ambient})}_{\text{room light}},
   \label{eq:dose}
@@ -428,7 +427,7 @@ A colormap moves only one factor of the melanopic dose, schematically
 with $L$ screen luminance, $f$ screen-fill fraction, $\Omega$ a viewing-geometry term, and $t$ exposure: a colormap moves only the chromaticity factor, while brightness, fill, and room light dominate.
 
 \begin{itemize}
-    \item \textbf{It rates chromaticity, not dose.} We report a colour property, never a light dose or an alertness effect: in \eqref{eq:dose} a colormap touches only the M/P factor.
+    \item \textbf{It rates chromaticity, not dose.} We report a colour property, never a light dose or an alertness effect: in~\eqref{eq:dose} a colormap touches only the M/P factor.
         If the goal is genuinely to stay alert, the dominant lever is room lighting.
     \item \textbf{Display-primary dependence.} The three coefficients assume a representative panel; real white-LED-LCD, OLED, and wide-gamut displays differ, especially in blue.
         We ship several panel archetypes and let users plug in measured SPDs.
@@ -445,7 +444,7 @@ with $L$ screen luminance, $f$ screen-fill fraction, $\Omega$ a viewing-geometry
 \subsection{Potential applications}\label{sec:applications}
 
 The melanopic axis is a design parameter, not a delivered physiological effect.
-A colormap fixes only the chromaticity factor of the melanopic dose in \eqref{eq:dose}; the dose that reaches an observer's retina multiplies that chromaticity by display luminance, screen-fill, viewing geometry, and duration.
+A colormap fixes only the chromaticity factor of the melanopic dose in~\eqref{eq:dose}; the dose that reaches an observer's retina multiplies that chromaticity by display luminance, screen-fill, viewing geometry, and duration.
 Every application below is therefore a hypothesis the Circadia family makes \emph{expressible}, not an effect it establishes: whether a deployment delivers a circadian benefit is an empirical question, downstream of the capability this paper provides --- traversing melanopic temperature $\alpha$ while holding perceptual uniformity and CVD-recoverability fixed.
 Recolouring can matter only where the display is a dominant term in that product --- large, bright, close, and viewed for sustained periods --- and where the levers that normally dominate, room lighting and screen brightness, are unavailable or deliberately held fixed.
 Under that condition the same family supplies two opposite interventions, selected by moving along $\alpha$ rather than by switching between unrelated colormaps: a low-$\alpha$ tail that keeps a display beneath an ambient melanopic floor, and a high-$\alpha$ tail that turns an incidental exposure into an intentional one.
@@ -467,7 +466,7 @@ Here the target of protection is explicitly the patient rather than the operator
 
 The alerting tail generalises to any role that must hold vigilance through the nadir in a room kept dark or dim by design, where the operator needs no dark-adapted view of an external space.
 Overnight tele-neuromonitoring is the direct sibling of PSG; windowless security and network-operations centres, dispatch floors, and remote-ICU night hubs, often kept dim to control glare across many screens, share the same structure.
-In these settings the display is the only alerting surface the operator controls, and the alerting direction is the physically easy one: blue-white light is at once bright and melanopically efficient, so the intervention rides the brightness--melanopic coupling rather than fighting it, at a cost measured mainly in glare and comfort.
+In these settings the display is the only alerting surface the operator controls, and the alerting direction is the physically easy one: blue-white light is at once bright and melanopically efficient, so the intervention rides the brightness-melanopic coupling rather than fighting it, at a cost measured mainly in glare and comfort.
 Because the acute alerting response to short-wavelength light is rapid~\cite{lockley2006shortwave}, an alerting theme is best deployed in bursts --- a sleep-deprived operator can dose through a slump without committing to a full night of maximal short-wavelength exposure, whose phase-shifting one would rather not impose on a rotating worker.
 
 Several further settings meet that same condition without needing individual development:
@@ -518,10 +517,10 @@ Table~\ref{tab:leaderboard} compresses each colormap to a melanopic mean and spr
 \begin{figure*}[t]
     \centering
     \includegraphics[width=\textwidth]{fig_melanopic_profiles.png}
-    \caption{\textbf{Per-position melanopic profiles --- the profile behind Table~\ref{tab:leaderboard}.} For every colormap, the melanopic ratio at each ramp position: the un-summarized curve whose luminance-weighted height is the M/P mean and whose spread is $\sigma$ in Table~\ref{tab:leaderboard}. \emph{Top (overview):} each map's M/P curve on a shared $\log_2$ axis (white = 1, with protective/alerting shading), coloured by its own colormap with opacity tracking per-position luminance --- so a curve fades exactly where it would otherwise spike at the dark, low-emission end; a thin grey curve beneath shows the true unweighted height, and near-black positions are gaps. Maps are split into three panels by M/P rank to avoid overplotting. \emph{Below:} a triplet per map --- the \textbf{colour} ramp; the per-position \textbf{M/P} on a fixed global $\log_2$ grey scale (black = 0.25, mid-grey = 1, white = 4; near-black / no-emission positions are hatched rather than painted an extreme grey); and the per-position \textbf{emission} (photopic luminance, normalized within each map). Where the M/P strip is bright but the emission strip is dark --- e.g.\ viridis and inferno at their dark ends --- the melanopic ``spike'' carries almost no light: the honest reading of dark-end blue, and the visual form of the chromaticity-not-dose caveat.}\label{fig:profiles}
+    \caption{\textbf{Per-position melanopic profiles --- the profile behind Table~\ref{tab:leaderboard}.} For every colormap, the melanopic ratio at each ramp position: the un-summarized curve whose luminance-weighted height is the M/P mean and whose spread is $\sigma$ in Table~\ref{tab:leaderboard}. \emph{Top (overview):} each map's M/P curve on a shared $\log_2$ axis (white = 1, with protective/alerting shading), coloured by its own colormap with opacity tracking per-position luminance --- so a curve fades exactly where it would otherwise spike at the dark, low-emission end; a thin grey curve beneath shows the true unweighted height, and near-black positions are gaps. Maps are split into three panels by M/P rank to avoid overplotting. \emph{Below:} a triplet per map --- the \textbf{colour} ramp; the per-position \textbf{M/P} on a fixed global $\log_2$ grey scale (black = 0.25, mid-grey = 1, white = 4; near-black / no-emission positions are hatched rather than painted an extreme grey); and the per-position \textbf{emission} (photopic luminance, normalized within each map). Where the M/P strip is bright but the emission strip is dark --- e.g.\ viridis and inferno at their dark ends --- the melanopic ``spike'' carries almost no light: the honest reading of dark-end blue, and the visual form of the chromaticity-not-dose caveat.}\label{fig:profiles} % chktex 12
 \end{figure*}
 
-\section{The mean--spread plane}\label{app:mean-spread}
+\section{The mean-spread plane}\label{app:mean-spread}
 \renewcommand{\thefigure}{B\arabic{figure}}
 \setcounter{figure}{0}
 
@@ -530,7 +529,7 @@ Table~\ref{tab:leaderboard} orders colormaps by their M/P mean alone; the spread
 \begin{figure*}[t]
     \centering
     \includegraphics[width=\textwidth]{fig_mean_spread.png}
-    \caption{\textbf{The mean--spread plane.} Every colormap from Table~\ref{tab:leaderboard} at its M/P mean ($x$; $<1$ protective, $>1$ alerting) and M/P spread $\sigma$ ($y$; lower is a tighter, purer ramp). Circles are existing maps coloured by their own ramp; stars are the Circadia anchors, which sit on the continuous family curve (warm $\to$ cool). The family and \texttt{copper} hold the low-spread frontier, while the popular uniform maps (viridis and siblings) and the rainbows (\texttt{jet}, \texttt{turbo}) sit high in spread. The dotted line marks the comparison in the text: \textbf{Xenon} (mean 1.73, $\sigma$ 0.42) is a tighter alerting map than \texttt{cool} (2.06, 0.58) despite a lower mean, and far tighter than \texttt{winter} (1.76, 1.80).}\label{fig:mean-spread}
+    \caption{\textbf{The mean-spread plane.} Every colormap from Table~\ref{tab:leaderboard} at its M/P mean ($x$; $<1$ protective, $>1$ alerting) and M/P spread $\sigma$ ($y$; lower is a tighter, purer ramp). Circles are existing maps coloured by their own ramp; stars are the Circadia anchors, which sit on the continuous family curve (warm $\to$ cool). The family and \texttt{copper} hold the low-spread frontier, while the popular uniform maps (viridis and siblings) and the rainbows (\texttt{jet}, \texttt{turbo}) sit high in spread. The dotted line marks the comparison in the text: \textbf{Xenon} (mean 1.73, $\sigma$ 0.42) is a tighter alerting map than \texttt{cool} (2.06, 0.58) despite a lower mean, and far tighter than \texttt{winter} (1.76, 1.80).}\label{fig:mean-spread}
 \end{figure*}
 
 \section*{Declarations}
