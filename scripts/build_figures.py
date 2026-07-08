@@ -840,6 +840,112 @@ def fig_mean_spread(path):
     plt.close(fig)
 
 
+# --------------------------------------------------------------------- hypnogram (application)
+def fig_hypnogram(path):
+    """The hypnogram palette — the melanopic axis used to carry ordered sleep-stage data."""
+    stages = mp.HYPNOGRAM_STAGES  # Wake, REM, N1, N2, N3
+    labels = [*stages, "Artifact", "Unscored"]
+    order = ["N3", "N2", "N1", "REM", "Wake"]  # hypnogram y-axis, deep sleep at the bottom
+    ylevel = {s: i for i, s in enumerate(order)}
+    seq = (
+        ["Wake"] * 2
+        + ["N1"] * 2
+        + ["N2"] * 4
+        + ["N3"] * 5
+        + ["N2"] * 2
+        + ["REM"] * 3
+        + ["N2"] * 3
+        + ["N3"] * 3
+        + ["N2"] * 2
+        + ["REM"] * 4
+        + ["N1"]
+        + ["N2"] * 2
+        + ["REM"] * 4
+        + ["N1"]
+        + ["Wake"] * 2
+    )
+    mpr = {s: float(mp.melanopic_ratio(np.array(to_rgb(mp.HYPNOGRAM[s])))[0]) for s in labels}
+
+    _theme()
+    fig = plt.figure(figsize=(7.2, 8.0), facecolor=BG)
+    gs = fig.add_gridspec(
+        3,
+        1,
+        height_ratios=[1.5, 1.1, 1.25],
+        hspace=0.6,
+        left=0.12,
+        right=0.9,
+        top=0.93,
+        bottom=0.06,
+    )
+
+    # A: a hypnogram coloured by stage
+    axh = fig.add_subplot(gs[0])
+    axh.set_facecolor(PANEL)
+    ys = [ylevel[s] for s in seq]
+    axh.step(range(len(seq) + 1), [*ys, ys[-1]], where="post", color=INK2, lw=0.8, alpha=0.6)
+    for t, s in enumerate(seq):
+        axh.add_patch(
+            plt.Rectangle((t, ylevel[s] - 0.34), 1, 0.68, color=mp.HYPNOGRAM[s], ec="none")
+        )
+    axh.set_xlim(0, len(seq))
+    axh.set_ylim(-0.7, 4.7)
+    axh.set_yticks(range(5))
+    axh.set_yticklabels(order)
+    axh.set_xticks([])
+    axh.tick_params(colors=INK2)
+    for sp in axh.spines.values():
+        sp.set_color(HAIR)
+    _title(axh, "A hypnogram coloured by stage — colour is the stage's place on the axis", size=10)
+
+    # B: stages on the alerting <-> protective axis, with M/P; greys set apart, off-axis
+    axs = fig.add_subplot(gs[1])
+    axs.set_facecolor(PANEL)
+    for i, s in enumerate(stages):
+        axs.add_patch(plt.Rectangle((i + 0.1, 0.45), 0.8, 0.5, color=mp.HYPNOGRAM[s]))
+        axs.text(i + 0.5, 1.04, s, ha="center", va="bottom", color=INK, fontsize=9)
+        axs.text(i + 0.5, 0.36, f"M/P {mpr[s]:.2f}", ha="center", va="top", color=INK2, fontsize=8)
+    for j, s in enumerate(["Artifact", "Unscored"]):
+        x = len(stages) + 0.4 + j
+        axs.add_patch(plt.Rectangle((x + 0.1, 0.45), 0.8, 0.5, color=mp.HYPNOGRAM[s]))
+        axs.text(x + 0.5, 1.04, s, ha="center", va="bottom", color=INK2, fontsize=7.5)
+        axs.text(x + 0.5, 0.36, "off-axis", ha="center", va="top", color=INK2, fontsize=7.5)
+    axs.annotate(
+        "", xy=(4.9, 0.16), xytext=(0.1, 0.16), arrowprops={"arrowstyle": "->", "color": INK2}
+    )
+    axs.text(0.1, 0.02, "alerting (Wake)", color=BLUE, fontsize=8, ha="left")
+    axs.text(4.9, 0.02, "protective (N3)", color=AMBER, fontsize=8, ha="right")
+    axs.set_xlim(-0.1, len(labels) + 0.6)
+    axs.set_ylim(0, 1.22)
+    axs.set_xticks([])
+    axs.set_yticks([])
+    for sp in axs.spines.values():
+        sp.set_color(HAIR)
+    _title(axs, "Stages walk the axis: alerting Wake → protective N3", size=10)
+
+    # C: the labels under normal + dichromacy — order survives (lightness carries it)
+    axc = fig.add_subplot(gs[2])
+    axc.set_facecolor(PANEL)
+    rgb = np.array([to_rgb(mp.HYPNOGRAM[s]) for s in labels])
+    for r, (lab, kind) in enumerate(CVD):
+        y = len(CVD) - 1 - r
+        for i, c in enumerate(_cvd(rgb, kind)):
+            axc.add_patch(plt.Rectangle((i + 0.08, y + 0.12), 0.84, 0.76, color=c))
+        axc.text(-0.15, y + 0.5, lab, ha="right", va="center", color=INK2, fontsize=8.5)
+    for i, s in enumerate(labels):
+        axc.text(i + 0.5, len(CVD) + 0.1, s, ha="center", va="bottom", color=INK2, fontsize=7.5)
+    axc.set_xlim(-0.02, len(labels))
+    axc.set_ylim(0, len(CVD) + 0.55)
+    axc.set_xticks([])
+    axc.set_yticks([])
+    for sp in axc.spines.values():
+        sp.set_color(HAIR)
+    _title(axc, "Stable under dichromacy — lightness carries the stage order", size=10)
+
+    fig.savefig(path, dpi=120, facecolor=BG)
+    plt.close(fig)
+
+
 FIGURES = {
     "generator": (fig_generator, "circadian_generator.png"),
     "leaderboard_table": (fig_leaderboard_table, "leaderboard.tex"),  # manuscript Table 1
@@ -848,6 +954,7 @@ FIGURES = {
     "mean_spread": (fig_mean_spread, "fig_mean_spread.png"),  # appendix B
     "validation": (fig_validation, "s026_validation.png"),
     "melanopic_colormaps": (fig_melanopic_colormaps, "melanopic_colormaps.png"),
+    "hypnogram": (fig_hypnogram, "hypnogram.png"),  # application worked example
 }
 
 

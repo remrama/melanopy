@@ -63,6 +63,23 @@ chosen to sit outside the family's colour footprint across all α (so they pop o
 fills alike) and to stay mutually distinct under colour-vision deficiency. They are deliberately
 vivid — that is the job.
 
+## Hypnogram palette
+
+`HYPNOGRAM` is a labelled stage → colour dict for hypnograms and hypnodensity plots — the melanopic
+axis *used* on data rather than scored against. The five stages (`HYPNOGRAM_STAGES`) walk a diagonal
+through the OKLab geometry: ordered by cortical activation (Wake > REM > N1 > N2 > N3), monotone in
+both lightness (light Wake → dark N3, so deep sleep reads dark and the order survives CVD) and
+melanopic ratio (alerting Wake → protective N3). REM is hue-offset off the warm↔cool spine so it
+stays distinct from Wake and N1; `Artifact` and `Unscored` are out-of-band greys (not stages).
+
+```python
+>>> import melanopy as mp
+>>> mp.HYPNOGRAM["Wake"]  # wake: light and cool (alerting)
+'#3dd5df'
+>>> mp.HYPNOGRAM["N3"]  # deep sleep: dark and warm (protective)
+'#551207'
+```
+
 ## Adding a measured panel
 
 The built-in panels (`representative`, `led_lcd`, `oled`, `wide_gamut`) are spectral *archetypes*,

@@ -17,6 +17,7 @@ from .generator import (
     circadia_sweep,
     circadian_cmap,
 )
+from .hypnogram import HYPNOGRAM, HYPNOGRAM_STAGES
 from .qualitative import (
     CIRCADIA_ACCENT,
     CIRCADIA_ACCENT_NAMES,
@@ -52,6 +53,8 @@ __all__ = [
     "QUALITATIVE_ALERTING_NAMES",
     "CIRCADIA_ACCENT",
     "CIRCADIA_ACCENT_NAMES",
+    "HYPNOGRAM",
+    "HYPNOGRAM_STAGES",
     "register",
     "__version__",
 ]

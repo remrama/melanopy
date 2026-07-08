@@ -217,3 +217,29 @@ plt.show()
 
 The full two-panel figure — including the `circadia_diverging` alerting-drive curve — is
 reproducible with `uv run scripts/build_sleep_wake_demo.py`.
+
+## A hypnogram coloured by stage
+
+For discrete sleep stages, `HYPNOGRAM` maps each stage to a colour that *is* its place on the
+melanopic axis: Wake alerting (light, cool), N3 protective (dark, warm), REM off to the side,
+`Artifact` / `Unscored` greyed out. Look each stage up in the dict.
+
+```python
+import matplotlib.pyplot as plt
+
+import melanopy as mp
+
+stages = ["Wake", "REM", "N1", "N2", "N3", "N3", "N2", "REM", "Wake"]  # one night, simplified
+level = {s: i for i, s in enumerate(["N3", "N2", "N1", "REM", "Wake"])}
+
+fig, ax = plt.subplots()
+for t, s in enumerate(stages):
+    ax.plot([t, t + 1], [level[s], level[s]], color=mp.HYPNOGRAM[s], lw=6, solid_capstyle="butt")
+ax.set_yticks(range(5))
+ax.set_yticklabels(["N3", "N2", "N1", "REM", "Wake"])
+plt.show()
+```
+
+Because lightness carries the stage order, the hypnogram stays readable in greyscale and under
+colour blindness; the colour adds the circadian reading — cool = alerting, warm = protective — on
+top.

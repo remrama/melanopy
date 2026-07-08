@@ -172,3 +172,48 @@ def test_circadia_accent_is_cvd_distinct():
     assert _min_cam02_separation(acc) > 15.0
     for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
         assert _min_cam02_separation(_cvd_sim(acc, cvd)) > 15.0
+
+
+# --- the hypnogram sleep-stage palette ---------------------------------------------------------
+# The worked example: the axis *used* on ordered circadian data. The five stages walk a diagonal
+# through the OKLab geometry, monotone in both lightness and melanopic ratio (Wake alerting -> N3
+# protective, deep = dark); REM is hue-offset and Artifact/Unscored are out-of-band greys.
+
+
+def _stage_rgb(stages):
+    return np.array([to_rgb(mp.HYPNOGRAM[s]) for s in stages])
+
+
+def test_hypnogram_keys():
+    assert mp.HYPNOGRAM_STAGES == ["Wake", "REM", "N1", "N2", "N3"]
+    assert set(mp.HYPNOGRAM) == {"Wake", "REM", "N1", "N2", "N3", "Artifact", "Unscored"}
+
+
+def test_hypnogram_monotone_lightness_and_melanopic():
+    rgb = _stage_rgb(mp.HYPNOGRAM_STAGES)  # Wake -> REM -> N1 -> N2 -> N3
+    assert np.all(np.diff(_oklab_L(rgb)) < 0)  # lightness falls: deep sleep dark, order CVD-safe
+    assert np.all(np.diff(mp.melanopic_ratio(rgb)) < 0)  # M/P falls: Wake alerting -> N3 protective
+
+
+def test_hypnogram_is_cvd_distinct():
+    rgb = _stage_rgb(["Wake", "REM", "N1", "N2", "N3", "Artifact", "Unscored"])
+    assert _min_cam02_separation(rgb) > 8.0
+    for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
+        assert _min_cam02_separation(_cvd_sim(rgb, cvd)) > 8.0
+
+
+def test_hypnogram_rem_is_off_spine():
+    # REM is alerting (near Wake) but hue-offset, so it is well separated from Wake AND N1
+    rem, wake, n1 = _stage_rgb(["REM", "Wake", "N1"])
+    for other in (wake, n1):
+        lab = cs.cspace_convert(np.stack([rem, other]), "sRGB1", "CAM02-UCS")
+        assert np.linalg.norm(lab[0] - lab[1]) > 15.0
+
+
+def test_hypnogram_greys_are_out_of_band():
+    # Artifact / Unscored are not stages: near-neutral (low chroma) and circadian-neutral (M/P ~ 1)
+    for label in ("Artifact", "Unscored"):
+        rgb = np.array(to_rgb(mp.HYPNOGRAM[label]))
+        _, a, b = cs.cspace_convert(np.clip(rgb, 0, 1), "sRGB1", "CAM02-UCS")
+        assert np.hypot(a, b) < 5.0  # low chroma (grey)
+        assert abs(mp.melanopic_ratio(rgb)[0] - 1.0) < 0.05  # neutral grey ~ display white

@@ -5,8 +5,9 @@ description: >-
   OKLab↔linear transforms, the three per-primary melanopic coefficients and the white-normalised
   M/P pipeline, the Circadia family's invariants (display white = 1.0, one shared monotone OKLab
   lightness), and the CAM02-UCS + Machado-CVD recipes that verify perceptual uniformity and CVD
-  order-recoverability. Use when editing rater.py, generator.py, coeffs.py, spectra.py or
-  qualitative.py, adding a display panel or colormap, or auditing a PU / CVD / melanopic claim.
+  order-recoverability. Use when editing rater.py, generator.py, coeffs.py, spectra.py,
+  qualitative.py or hypnogram.py, adding a display panel or colormap, or auditing a PU / CVD /
+  melanopic claim.
 ---
 
 # Melanopy colour & vision science
@@ -17,13 +18,14 @@ in the runtime path). Match that style — do not pull in a colour library for c
 
 ## Where the maths lives
 
-| file             | responsibility                                                               |
-| ---------------- | ---------------------------------------------------------------------------- |
-| `rater.py`       | sRGB→linear, the three-coefficient melanopic pipeline, the two metrics       |
-| `generator.py`   | OKLab↔linear, gamut clamp, the shared lightness profile, the Circadia family |
-| `coeffs.py`      | `PANELS` (per-primary M/P coefficients), `LUM_W`, `get_coeffs(panel)`        |
-| `spectra.py`     | **offline only** — derives coefficients from primary SPDs + CIE S 026 data   |
-| `qualitative.py` | the fixed CVD-safe qualitative palette (separate from the continuous axis)   |
+| file             | responsibility                                                                |
+| ---------------- | ----------------------------------------------------------------------------- |
+| `rater.py`       | sRGB→linear, the three-coefficient melanopic pipeline, the two metrics        |
+| `generator.py`   | OKLab↔linear, gamut clamp, the shared lightness profile, the Circadia family  |
+| `coeffs.py`      | `PANELS` (per-primary M/P coefficients), `LUM_W`, `get_coeffs(panel)`         |
+| `spectra.py`     | **offline only** — derives coefficients from primary SPDs + CIE S 026 data    |
+| `qualitative.py` | CVD-safe qualitative palettes: neutral, themed protective/alerting, accent    |
+| `hypnogram.py`   | labelled sleep-stage palette — the axis used on ordered data (worked example) |
 
 `spectra.py` reads the vendored CIE tables (`src/melanopy/data/`, CC BY-SA 4.0) and is *not*
 imported by `__init__.py`; it is a generation-time tool. The runtime never reads `data/`.

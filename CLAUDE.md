@@ -77,10 +77,13 @@ The dependency flow is a one-way pipeline — understand this before editing:
     monotonicity is asserted in the tests via the rater. Anchors: `SODIUM` (0.0, protective),
     `EQUILUX` (0.55, ~neutral M/P≈1), `XENON` (1.0, alerting).
 
-`qualitative.py` is separate from the continuous axis: a fixed CVD-safe qualitative palette
-(dark/light variants), circadian-neutral by design and justified by an area-weighted argument
-that small marks emit negligible light, so one palette serves every circadian regime; it is
-optimised for CVD separability, not melanopic content.
+`qualitative.py` holds the fixed CVD-safe qualitative palettes. The neutral set is circadian-neutral
+by design (the area-weighted argument: small marks emit negligible light, so one palette serves every
+regime; it is optimised for CVD separability, not melanopic content). Regime-aware variants
+(`QUALITATIVE_PROTECTIVE`/`_ALERTING`, and `CIRCADIA_ACCENT` for marks over a fill) are derived and
+CVD-validated by `scripts/build_qualitative.py`. `hypnogram.py` is the worked example: a labelled
+sleep-stage palette that *uses* the axis, walking a diagonal through the generator's OKLab geometry
+(monotone lightness + melanopic ratio, Wake→N3), with REM hue-offset and Artifact/Unscored greys.
 
 **Adapters** (`src/melanopy/adapters/`) keep third-party integration out of core:
 `mpl.register()` registers sodium/xenon/equilux as named matplotlib colormaps;
