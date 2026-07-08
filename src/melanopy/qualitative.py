@@ -13,7 +13,11 @@ for large qualitative fills where the axis does apply. They are *chromatically* 
 low-M/P for protective; cool, high-M/P for alerting --- an aesthetic alignment, not a light-dose
 claim. Confining colour to one hue wedge costs count and contrast, so each is a smaller,
 lower-contrast set (5 colours) than the neutral one; all stay CVD-distinct under simulation.
-Built by ``scripts/build_qualitative.py``.
+
+For marks (ticks, points, event lines) laid *over* a Circadia fill, :data:`CIRCADIA_ACCENT` gives a
+few high-chroma colours chosen to sit outside the family's colour footprint (so they pop over warm
+*and* cool fills) and to stay mutually distinct under CVD --- vivid by design, since their job is to
+stand out. All three regime-aware sets are built by ``scripts/build_qualitative.py``.
 
 Validated under deuteran / protan / tritan simulation (Machado et al. 2009).
 
@@ -24,6 +28,8 @@ Examples
 ['amber', 'sky', 'teal']
 >>> mp.QUALITATIVE_PROTECTIVE_NAMES
 ['amber', 'ember', 'wheat', 'orange', 'tan']
+>>> len(mp.CIRCADIA_ACCENT)
+5
 >>> from matplotlib.colors import to_rgb
 >>> prot = mp.melanopic_ratio([to_rgb(c) for c in mp.QUALITATIVE_PROTECTIVE])
 >>> bool((prot < 1).all())  # every protective swatch sits below display white (M/P = 1)
@@ -47,6 +53,12 @@ QUALITATIVE_PROTECTIVE_NAMES = ["amber", "ember", "wheat", "orange", "tan"]
 QUALITATIVE_ALERTING = ["#3c75bf", "#00999b", "#94dce4", "#283c72", "#55add8"]
 QUALITATIVE_ALERTING_NAMES = ["blue", "teal", "ice", "indigo", "sky"]
 
+# Accent palette (scripts/build_qualitative.py): high-chroma marks that pop over *any* Circadia fill
+# — far from the family's colour footprint across all alpha, and mutually distinct under CVD (which
+# forces them into the magenta/green region, told apart by lightness). Vivid by design.
+CIRCADIA_ACCENT = ["#ff50df", "#91eb04", "#456001", "#92007e", "#feb9ba"]
+CIRCADIA_ACCENT_NAMES = ["magenta", "lime", "olive", "plum", "pink"]
+
 __all__ = [
     "QUALITATIVE_DARK",
     "QUALITATIVE_LIGHT",
@@ -56,4 +68,6 @@ __all__ = [
     "QUALITATIVE_PROTECTIVE_NAMES",
     "QUALITATIVE_ALERTING",
     "QUALITATIVE_ALERTING_NAMES",
+    "CIRCADIA_ACCENT",
+    "CIRCADIA_ACCENT_NAMES",
 ]

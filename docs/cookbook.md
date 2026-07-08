@@ -166,6 +166,27 @@ Assign them to categories the usual way — `color=mp.QUALITATIVE_PROTECTIVE[i]`
 `ListedColormap(mp.QUALITATIVE_ALERTING)` as a `cmap`. Each carries fewer colours than the neutral
 set (the cost of staying on one side of the axis) but stays colourblind-distinct.
 
+## Accent marks over a circadian fill
+
+Overlaying ticks, points, or event lines on a Circadia fill? `CIRCADIA_ACCENT` holds vivid colours
+chosen to sit outside the family's colour footprint — so they pop over a warm *or* a cool fill —
+and to stay distinct under colour blindness.
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+import melanopy as mp
+
+z = np.add.outer(np.sin(np.linspace(0, 6, 200)), np.cos(np.linspace(0, 6, 300)))
+
+fig, ax = plt.subplots()
+ax.imshow(z, aspect="auto", cmap=mp.circadia(0.0, as_cmap=True))  # warm Sodium fill
+for i, color in enumerate(mp.CIRCADIA_ACCENT):  # event markers that stay legible over it
+    ax.axvline(40 + i * 45, color=color, lw=2.5)
+plt.show()
+```
+
 ## Match the map to the data
 
 The melanopic axis can *carry* the data's meaning, not just score it. When the data is itself

@@ -145,3 +145,30 @@ def test_themed_qualitative_are_cvd_distinct():
         assert _min_cam02_separation(rgb) > 8.0
         for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
             assert _min_cam02_separation(_cvd_sim(rgb, cvd)) > 8.0
+
+
+# --- the Circadia accent palette ---------------------------------------------------------------
+# Marks laid over a Circadia fill. Locked against drift: recompute the family footprint from the
+# *current* generator and assert each accent colour still sits far from it, and that the set stays
+# mutually distinct under CVD. (The build script is only a derivation aid; these floors are the
+# contract, so the baked hex can be curated as long as it clears them.)
+
+
+def test_circadia_accent_names_match():
+    assert len(mp.CIRCADIA_ACCENT) == len(mp.CIRCADIA_ACCENT_NAMES) == 5
+
+
+def test_circadia_accent_pops_over_the_family():
+    fam = np.vstack([mp.circadia(a, n=64) for a in np.linspace(0, 1, 11)])
+    fam_lab = cs.cspace_convert(np.clip(fam, 0, 1), "sRGB1", "CAM02-UCS")
+    acc = np.array([to_rgb(c) for c in mp.CIRCADIA_ACCENT])
+    acc_lab = cs.cspace_convert(acc, "sRGB1", "CAM02-UCS")
+    dist = np.linalg.norm(acc_lab[:, None, :] - fam_lab[None, :, :], axis=-1).min(axis=1)
+    assert dist.min() > 15.0  # far from warm and cool fills alike
+
+
+def test_circadia_accent_is_cvd_distinct():
+    acc = np.array([to_rgb(c) for c in mp.CIRCADIA_ACCENT])
+    assert _min_cam02_separation(acc) > 15.0
+    for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
+        assert _min_cam02_separation(_cvd_sim(acc, cvd)) > 15.0

@@ -18,6 +18,8 @@ from .generator import (
     circadian_cmap,
 )
 from .qualitative import (
+    CIRCADIA_ACCENT,
+    CIRCADIA_ACCENT_NAMES,
     QUALITATIVE,
     QUALITATIVE_ALERTING,
     QUALITATIVE_ALERTING_NAMES,
@@ -48,6 +50,8 @@ __all__ = [
     "QUALITATIVE_PROTECTIVE_NAMES",
     "QUALITATIVE_ALERTING",
     "QUALITATIVE_ALERTING_NAMES",
+    "CIRCADIA_ACCENT",
+    "CIRCADIA_ACCENT_NAMES",
     "register",
     "__version__",
 ]

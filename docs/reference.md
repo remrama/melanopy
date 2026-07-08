@@ -57,6 +57,12 @@ and lower-contrast than the neutral set, though still CVD-distinct under simulat
 ['blue', 'teal', 'ice', 'indigo', 'sky']
 ```
 
+**Accent marks over a fill.** `CIRCADIA_ACCENT` (with `CIRCADIA_ACCENT_NAMES`) is a small set of
+high-chroma colours for marks — ticks, points, event lines — drawn *over* a Circadia fill. They are
+chosen to sit outside the family's colour footprint across all α (so they pop over warm and cool
+fills alike) and to stay mutually distinct under colour-vision deficiency. They are deliberately
+vivid — that is the job.
+
 ## Adding a measured panel
 
 The built-in panels (`representative`, `led_lcd`, `oled`, `wide_gamut`) are spectral *archetypes*,
