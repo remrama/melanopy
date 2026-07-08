@@ -119,3 +119,29 @@ def test_qualitative_straddles_the_axis():
     for hexes in (mp.QUALITATIVE_DARK, mp.QUALITATIVE_LIGHT):
         m = mp.melanopic_ratio(np.array([to_rgb(c) for c in hexes]))
         assert m.min() < 1.0 < m.max()
+
+
+# --- the regime-themed qualitative palettes ----------------------------------------------------
+# Unlike the neutral set these ARE chromatically aligned with the melanopic regimes: every
+# protective swatch sits below display white, every alerting swatch above it. Confined to one hue
+# wedge, so smaller (5 colours) — but still CVD-distinct under all three dichromacies.
+
+
+def test_themed_qualitative_names_match():
+    assert len(mp.QUALITATIVE_PROTECTIVE) == len(mp.QUALITATIVE_PROTECTIVE_NAMES) == 5
+    assert len(mp.QUALITATIVE_ALERTING) == len(mp.QUALITATIVE_ALERTING_NAMES) == 5
+
+
+def test_themed_qualitative_are_on_theme():
+    prot = mp.melanopic_ratio(np.array([to_rgb(c) for c in mp.QUALITATIVE_PROTECTIVE]))
+    alert = mp.melanopic_ratio(np.array([to_rgb(c) for c in mp.QUALITATIVE_ALERTING]))
+    assert np.all(prot < 1.0)  # protective set is entirely warm / low-melanopic
+    assert np.all(alert > 1.0)  # alerting set is entirely cool / high-melanopic
+
+
+def test_themed_qualitative_are_cvd_distinct():
+    for hexes in (mp.QUALITATIVE_PROTECTIVE, mp.QUALITATIVE_ALERTING):
+        rgb = np.array([to_rgb(c) for c in hexes])
+        assert _min_cam02_separation(rgb) > 8.0
+        for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
+            assert _min_cam02_separation(_cvd_sim(rgb, cvd)) > 8.0

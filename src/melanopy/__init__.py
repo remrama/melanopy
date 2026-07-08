@@ -19,9 +19,13 @@ from .generator import (
 )
 from .qualitative import (
     QUALITATIVE,
+    QUALITATIVE_ALERTING,
+    QUALITATIVE_ALERTING_NAMES,
     QUALITATIVE_DARK,
     QUALITATIVE_LIGHT,
     QUALITATIVE_NAMES,
+    QUALITATIVE_PROTECTIVE,
+    QUALITATIVE_PROTECTIVE_NAMES,
 )
 from .rater import circadia_rating, melanopic_ratio, rate_colormap
 
@@ -40,6 +44,10 @@ __all__ = [
     "QUALITATIVE_LIGHT",
     "QUALITATIVE_NAMES",
     "QUALITATIVE",
+    "QUALITATIVE_PROTECTIVE",
+    "QUALITATIVE_PROTECTIVE_NAMES",
+    "QUALITATIVE_ALERTING",
+    "QUALITATIVE_ALERTING_NAMES",
     "register",
     "__version__",
 ]

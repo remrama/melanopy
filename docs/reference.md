@@ -45,6 +45,18 @@ tuned. One palette therefore serves every circadian regime.
 ['#F2A036', '#81CAF0', '#009C89']
 ```
 
+**Regime-themed variants.** When you *want* qualitative marks to harmonise with the display's
+circadian regime — or for large qualitative fills, where the axis does apply — reach for
+`QUALITATIVE_PROTECTIVE` (warm, every swatch M/P < 1) or `QUALITATIVE_ALERTING` (cool, every swatch
+M/P > 1), each with a matching `_NAMES` list. These are *chromatically* aligned with the regime (an
+aesthetic choice, not a light-dose claim); confined to one hue wedge, they are smaller (5 colours)
+and lower-contrast than the neutral set, though still CVD-distinct under simulation.
+
+```python
+>>> mp.QUALITATIVE_ALERTING_NAMES
+['blue', 'teal', 'ice', 'indigo', 'sky']
+```
+
 ## Adding a measured panel
 
 The built-in panels (`representative`, `led_lcd`, `oled`, `wide_gamut`) are spectral *archetypes*,

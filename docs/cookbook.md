@@ -138,6 +138,34 @@ plt.show()
 The initial title reads `α = 0.00  →  M/P = 0.29  (σ = 0.07, representative)`. The SMACC reference
 app does the same through the pyqtgraph adapter (`melanopy.adapters.pyqtgraph`).
 
+## Qualitative marks tuned to the regime
+
+Small categorical marks emit little light, so the neutral `QUALITATIVE` set fits any regime. When
+you instead *want* the marks to harmonise with a protective or alerting display — or the marks are
+large fills — reach for the themed sets, which are chromatically aligned with the regime (every
+protective swatch warm, every alerting swatch cool):
+
+```python
+import numpy as np
+from matplotlib.colors import to_rgb
+
+import melanopy as mp
+
+for regime in ("PROTECTIVE", "ALERTING"):
+    hexes = getattr(mp, f"QUALITATIVE_{regime}")
+    r = mp.melanopic_ratio(np.array([to_rgb(c) for c in hexes]))
+    print(f"{regime:10s} {len(hexes)} colours, M/P {r.min():.2f} to {r.max():.2f}")
+```
+
+```text
+PROTECTIVE 5 colours, M/P 0.34 to 0.60
+ALERTING   5 colours, M/P 1.19 to 2.47
+```
+
+Assign them to categories the usual way — `color=mp.QUALITATIVE_PROTECTIVE[i]`, or
+`ListedColormap(mp.QUALITATIVE_ALERTING)` as a `cmap`. Each carries fewer colours than the neutral
+set (the cost of staying on one side of the axis) but stays colourblind-distinct.
+
 ## Match the map to the data
 
 The melanopic axis can *carry* the data's meaning, not just score it. When the data is itself
