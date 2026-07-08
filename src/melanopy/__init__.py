@@ -8,12 +8,6 @@ walks the axis while holding uniformity and colourblind-safety fixed.
 """
 
 from .adapters.mpl import register
-from .categorical import (
-    CATEGORICAL,
-    CATEGORICAL_DARK,
-    CATEGORICAL_LIGHT,
-    CATEGORICAL_NAMES,
-)
 from .generator import (
     EQUILUX,
     SODIUM,
@@ -22,6 +16,12 @@ from .generator import (
     circadia_diverging,
     circadia_sweep,
     circadian_cmap,
+)
+from .qualitative import (
+    QUALITATIVE,
+    QUALITATIVE_DARK,
+    QUALITATIVE_LIGHT,
+    QUALITATIVE_NAMES,
 )
 from .rater import circadia_rating, melanopic_ratio, rate_colormap
 
@@ -36,10 +36,10 @@ __all__ = [
     "melanopic_ratio",
     "rate_colormap",
     "circadia_rating",
-    "CATEGORICAL_DARK",
-    "CATEGORICAL_LIGHT",
-    "CATEGORICAL_NAMES",
-    "CATEGORICAL",
+    "QUALITATIVE_DARK",
+    "QUALITATIVE_LIGHT",
+    "QUALITATIVE_NAMES",
+    "QUALITATIVE",
     "register",
     "__version__",
 ]

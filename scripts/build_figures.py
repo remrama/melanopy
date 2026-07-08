@@ -449,8 +449,8 @@ def _pairwise_min(colors):
 
 def fig_melanopic_colormaps(path):
     sodium = mp.circadia(0.0)
-    cat = np.array([to_rgb(c) for c in mp.CATEGORICAL_DARK])
-    names = mp.CATEGORICAL_NAMES
+    cat = np.array([to_rgb(c) for c in mp.QUALITATIVE_DARK])
+    names = mp.QUALITATIVE_NAMES
 
     _theme()
     fig = plt.figure(figsize=(11, 10.5), facecolor=BG)
@@ -477,7 +477,7 @@ def fig_melanopic_colormaps(path):
                 "(lightness does the work)",
             )
 
-    # B: categorical swatches
+    # B: qualitative swatches
     axc = fig.add_subplot(gs[1])
     axc.set_facecolor(PANEL)
     axc.set_xlim(0, len(cat))
@@ -491,11 +491,11 @@ def fig_melanopic_colormaps(path):
         axc.text(i + 0.5, 0.14, names[i], ha="center", va="center", color=INK2, fontsize=8.5)
     _title(
         axc,
-        "CVD-safe categorical set — one palette serves every circadian regime "
+        "CVD-safe qualitative set — one palette serves every circadian regime "
         "(area-weighted budget)",
     )
 
-    # C: categorical under CVD (separability)
+    # C: qualitative under CVD (separability)
     axt = fig.add_subplot(gs[2])
     axt.set_facecolor(PANEL)
     axt.set_xlim(0, len(cat))
@@ -520,7 +520,7 @@ def fig_melanopic_colormaps(path):
         )
     _title(
         axt,
-        "Categorical under simulated dichromacy — min CAM02-UCS separation stays well "
+        "Qualitative under simulated dichromacy — min CAM02-UCS separation stays well "
         "above the confusion floor",
         size=10.5,
     )

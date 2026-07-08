@@ -186,14 +186,14 @@ A daytime alertness display and an overnight sleep-lab display want opposite end
 \par
 \textbf{The area-weighted melanopic budget.} Why does the axis matter for some marks and not others?
 Because emitted light scales with screen area. Large fills --- spectrograms, density maps, heat maps --- cover a big fraction of the display and dominate the light it emits, so the axis matters for them.
-Small categorical marks --- lines, points, glyphs --- emit negligibly regardless of their colour, so for them the axis is effectively \emph{``ignore it''}: a single CVD-safe categorical palette serves every circadian regime.
-This split is a design principle, not a limitation: it tells us to spend the melanopic budget on \emph{sequential fills} and to keep categorical colour a separate, fixed concern.
-(\textbf{Melanopy} ships exactly one CVD-safe categorical palette, justified by this argument; it stays well-separated under simulated colour blindness, Fig.~\ref{fig:melanopic-colormaps}.)
+Small qualitative marks --- lines, points, glyphs --- emit negligibly regardless of their colour, so for them the axis is effectively \emph{``ignore it''}: a CVD-safe qualitative palette serves every circadian regime.
+This split is a design principle, not a limitation: it tells us to spend the melanopic budget on \emph{sequential fills} and to keep qualitative colour a separate concern.
+(\textbf{Melanopy} ships a CVD-safe qualitative palette for this case --- optimised for category separability, not melanopic content; it stays well-separated under simulated colour blindness, Fig.~\ref{fig:melanopic-colormaps}.)
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{melanopic_colormaps.png}
-    \caption{The area-weighted budget in practice. \emph{Top:} the protective endpoint Sodium under simulated dichromacy stays order-preserving --- lightness does the ordering work. \emph{Middle/bottom:} the single CVD-safe categorical palette stays well-separated under colour blindness, so one palette serves every circadian regime.}\label{fig:melanopic-colormaps} % chktex 12
+    \caption{The area-weighted budget in practice. \emph{Top:} the protective endpoint Sodium under simulated dichromacy stays order-preserving --- lightness does the ordering work. \emph{Middle/bottom:} the CVD-safe qualitative palette stays well-separated under colour blindness, so one palette serves every circadian regime.}\label{fig:melanopic-colormaps} % chktex 12
 \end{figure}
 
 \paragraph{The spectral half: from a spectrum to three coefficients.}
@@ -455,7 +455,7 @@ The recording room is kept dark for the patient, so ambient light is unavailable
 The technologist monitors physiology and the patient through instrument displays and an infrared video feed rather than by direct view of the darkened room, which removes the usual objection to a bright display at night: no scotopic sensitivity is sacrificed, because none is in use.
 Their monitor subtends a large fraction of the visual field at reading distance and runs for the full shift, so its emission is a non-trivial melanopic source at the technologist's own cornea --- and through the circadian nadir a deliberately high-$\alpha$ theme turns that incidental exposure into an acute alerting dose~\cite{lockley2006shortwave}, the lever the dark room otherwise denies them.
 Which screen region carries the dose depends on the view: a raw montage is sparse traces on a background, so background luminance and spectrum dominate and the alerting move is a bright, blue-white background rather than the conventional dark theme; a spectrogram or density spectral array fills the field with the colormap itself, so the alerting move is a high-melanopic ramp.
-This is precisely where our reference deployment, SMACC --- a PyQt6/pyqtgraph sleep- and dream-research tool --- exposes $\alpha$ as a live slider over the large-fill colormaps (spectrogram, hypnogram density, topographic maps), while categorical line and scatter views, whose emission is negligible (Section~\ref{sec:axis}), need not react.
+This is precisely where our reference deployment, SMACC --- a PyQt6/pyqtgraph sleep- and dream-research tool --- exposes $\alpha$ as a live slider over the large-fill colormaps (spectrogram, hypnogram density, topographic maps), while qualitative line and scatter views, whose emission is negligible (Section~\ref{sec:axis}), need not react.
 The same room supports the protective tail pointed the other way: light emitted toward the sleeping patient is a leak to be minimised --- a geometry problem (emission onto the operator, away from the sleeper) combined with a low-$\alpha$ theme on any patient-facing surface.
 This dual use within a single room is the concrete integration target for \textbf{melanopy} in downstream tooling, which we do not evaluate here.
 

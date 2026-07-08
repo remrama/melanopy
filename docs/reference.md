@@ -28,17 +28,20 @@ and **`XENON`** (`alpha=1.0`) are exported as ready-made `matplotlib.colors.List
 
 ::: melanopy.register
 
-## Categorical palette
+## Qualitative palettes
 
-The CVD-safe categorical palette is exposed as `CATEGORICAL` (a `ListedColormap`), with the raw hex
-lists `CATEGORICAL_DARK` / `CATEGORICAL_LIGHT` and `CATEGORICAL_NAMES`. One palette serves every
-circadian regime: small categorical marks emit negligible light.
+The CVD-safe qualitative palette is exposed as `QUALITATIVE` (a `ListedColormap`), with the raw hex
+lists `QUALITATIVE_DARK` / `QUALITATIVE_LIGHT` and `QUALITATIVE_NAMES`. It is **circadian-neutral by
+design**: small qualitative marks emit negligible light regardless of colour (the area-weighted
+budget), so this palette is optimised for category separability under colour-vision deficiency, not
+for melanopic content — its swatches straddle the axis, and the melanopic ratio is reported, never
+tuned. One palette therefore serves every circadian regime.
 
 ```python
 >>> import melanopy as mp
->>> mp.CATEGORICAL_NAMES
+>>> mp.QUALITATIVE_NAMES
 ['amber', 'sky', 'teal', 'yellow', 'blue', 'vermillion', 'rose']
->>> mp.CATEGORICAL_DARK[:3]
+>>> mp.QUALITATIVE_DARK[:3]
 ['#F2A036', '#81CAF0', '#009C89']
 ```
 

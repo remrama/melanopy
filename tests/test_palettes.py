@@ -5,8 +5,9 @@ while lightness stays monotone (ordered); the diverging map's is a neutral (M/P 
 warm protective arm and a cool alerting arm. Checked here against the rater and OKLab lightness.
 """
 
+import colorspacious as cs
 import numpy as np
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, to_rgb
 
 import melanopy as mp
 
@@ -74,3 +75,47 @@ def test_new_maps_register():
     mp.register()
     assert "circadia_sweep" in plt.colormaps()
     assert "circadia_diverging" in plt.colormaps()
+    assert "melanopy_qualitative" in plt.colormaps()
+
+
+# --- the neutral qualitative palette -----------------------------------------------------------
+# Circadian-neutral by design: optimised for CVD separability, not melanopic content. We assert
+# what it *is* for (colours stay distinct under dichromacy) and confirm it is not secretly tuned
+# to one regime (its swatches straddle display white, M/P = 1).
+
+
+def _min_cam02_separation(rgb):
+    """Smallest pairwise CAM02-UCS distance in an ``(N, 3)`` sRGB set."""
+    lab = cs.cspace_convert(np.clip(rgb, 0, 1), "sRGB1", "CAM02-UCS")
+    d = np.linalg.norm(lab[:, None, :] - lab[None, :, :], axis=-1)
+    return d[d > 0].min()
+
+
+def _cvd_sim(rgb, cvd):
+    """Machado-2009 dichromacy simulation (severity 100) of an sRGB set."""
+    space = {"name": "sRGB1+CVD", "cvd_type": cvd, "severity": 100}
+    return np.clip(cs.cspace_convert(np.clip(rgb, 0, 1), space, "sRGB1"), 0, 1)
+
+
+def test_qualitative_palette_is_a_listed_cmap():
+    assert isinstance(mp.QUALITATIVE, ListedColormap)
+    assert mp.QUALITATIVE.name == "melanopy_qualitative"
+    assert len(mp.QUALITATIVE_DARK) == len(mp.QUALITATIVE_LIGHT) == len(mp.QUALITATIVE_NAMES) == 7
+
+
+def test_qualitative_is_cvd_distinct():
+    # every swatch stays well separated under normal vision and all three dichromacies (min
+    # CAM02-UCS distance well above the ~1-2 unit confusion floor)
+    for hexes in (mp.QUALITATIVE_DARK, mp.QUALITATIVE_LIGHT):
+        rgb = np.array([to_rgb(c) for c in hexes])
+        assert _min_cam02_separation(rgb) > 8.0
+        for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
+            assert _min_cam02_separation(_cvd_sim(rgb, cvd)) > 8.0
+
+
+def test_qualitative_straddles_the_axis():
+    # not tuned to one regime — the swatches span both sides of display white (M/P = 1), so the
+    # palette as a whole sits on neither end of the melanopic axis
+    for hexes in (mp.QUALITATIVE_DARK, mp.QUALITATIVE_LIGHT):
+        m = mp.melanopic_ratio(np.array([to_rgb(c) for c in hexes]))
+        assert m.min() < 1.0 < m.max()

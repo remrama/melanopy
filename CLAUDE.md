@@ -77,9 +77,10 @@ The dependency flow is a one-way pipeline — understand this before editing:
     monotonicity is asserted in the tests via the rater. Anchors: `SODIUM` (0.0, protective),
     `EQUILUX` (0.55, ~neutral M/P≈1), `XENON` (1.0, alerting).
 
-`categorical.py` is separate from the continuous axis: a fixed CVD-safe categorical palette
-(dark/light variants), justified by an area-weighted argument that small marks emit
-negligible light, so one palette serves every circadian regime.
+`qualitative.py` is separate from the continuous axis: a fixed CVD-safe qualitative palette
+(dark/light variants), circadian-neutral by design and justified by an area-weighted argument
+that small marks emit negligible light, so one palette serves every circadian regime; it is
+optimised for CVD separability, not melanopic content.
 
 **Adapters** (`src/melanopy/adapters/`) keep third-party integration out of core:
 `mpl.register()` registers sodium/xenon/equilux as named matplotlib colormaps;
