@@ -1,12 +1,12 @@
-"""Derive and validate the regime-aware qualitative palettes (protective / alerting / accent).
+"""Derive and validate the Circadia accent palette.
 
-Generation-time tool (like ``build_panels.py``). The themed sets (protective / alerting) are built
-from OKLab ``(L, C, hue)`` anchors and clamped into sRGB with the generator's gamut clamp; the
-accent set is farthest-point-sampled away from the Circadia family's colour footprint. All are
-validated against the rater (melanopic-ratio sign) and ``colorspacious`` (CVD separability). Prints
-the hex + names to bake into ``melanopy.qualitative``.
+Generation-time tool (like ``build_panels.py``). Accent marks drawn over a Circadia fill must sit
+outside the region of colour space the family occupies across all alpha (so they contrast with warm
+*and* cool fills) and stay mutually distinct under CVD. ``build_accent`` farthest-point-samples that
+region; the raw maximiser is garish, so the shipped set (``ACCENT``) is CURATED within the same arc
+for a coordinated look, re-checked against the floors, and baked into ``melanopy.accent``.
 
-    uv run --extra dev scripts/build_qualitative.py
+    uv run --extra dev scripts/build_accent.py
 """
 
 import colorspacious as cs
@@ -19,15 +19,6 @@ from melanopy.generator import _clamp
 CVDS = ("deuteranomaly", "protanomaly", "tritanomaly")
 
 
-def build(anchors):
-    """List of OKLab ``(L, C, hue_deg)`` -> ``(N, 3)`` sRGB, each reduced into gamut."""
-    out = []
-    for lightness, chroma, hue in anchors:
-        r = np.radians(hue)
-        out.append(_clamp(lightness, chroma * np.cos(r), chroma * np.sin(r)))
-    return np.array(out)
-
-
 def _min_pairwise(lab):
     d = np.linalg.norm(lab[:, None, :] - lab[None, :, :], axis=-1)
     return d[d > 0].min()
@@ -36,29 +27,11 @@ def _min_pairwise(lab):
 def min_cvd_separation(rgb):
     """Worst-case min pairwise CAM02-UCS separation over normal + 3 dichromacies."""
     worst = _min_pairwise(cs.cspace_convert(np.clip(rgb, 0, 1), "sRGB1", "CAM02-UCS"))
-    for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
+    for cvd in CVDS:
         space = {"name": "sRGB1+CVD", "cvd_type": cvd, "severity": 100}
         sim = np.clip(cs.cspace_convert(np.clip(rgb, 0, 1), space, "sRGB1"), 0, 1)
         worst = min(worst, _min_pairwise(cs.cspace_convert(sim, "sRGB1", "CAM02-UCS")))
     return worst
-
-
-def report(label, anchors, names):
-    rgb = build(anchors)
-    m = melanopic_ratio(rgb)
-    print(f"\n{label}: worst CVD min-dE = {min_cvd_separation(rgb):.2f}")
-    for name, c, ratio in zip(names, rgb, m):
-        print(f"  {name:9s} {to_hex(c)}  M/P={ratio:.3f}")
-    print(f"  M/P range [{m.min():.3f}, {m.max():.3f}]")
-    print(f"  hex = {[to_hex(c) for c in rgb]}")
-
-
-# --- accent palette: marks that pop over any Circadia fill --------------------------------------
-# Marks (ticks, points, event lines) overlaid on a Circadia fill must (a) sit outside the region of
-# colour space the family occupies across all alpha, so they contrast against warm *and* cool fills,
-# and (b) stay mutually distinct under CVD. We build the family's CAM02-UCS footprint, then greedily
-# farthest-point-sample high-chroma candidates that are far from it, scoring mutual distance by the
-# worst case over normal + the three dichromacies.
 
 
 def _cam(rgb):
@@ -118,9 +91,9 @@ def report_accent(k=5):
     print(f"  hex = {[to_hex(c) for c in rgb]}")
 
 
-# Shipped accent set: the raw farthest-point search (build_accent) maximises the two floors but
-# looks garish, so we CURATE within the same far-from-family arc for a coordinated look, then check
-# the floors still hold. Ordered orchid / grape / emerald / lime.
+# Shipped accent set: the raw farthest-point search maximises the two floors but looks garish, so we
+# CURATE within the same far-from-family arc for a coordinated look, then check the floors still
+# hold. Ordered orchid / grape / emerald / lime.
 ACCENT = ["#d84fb0", "#5e2b9e", "#12a074", "#a5d84f"]
 ACCENT_NAMES = ["orchid", "grape", "emerald", "lime"]
 
@@ -136,30 +109,6 @@ def report_curated_accent():
         print(f"  {nm:8s} {hx}")
 
 
-# (L, C, hue_deg) OKLab anchors — warm wedge (protective) / cool wedge (alerting). Ordered so the
-# first two swatches are maximally distinct (the common 2-3 category use); separability inside each
-# wedge is bought mostly from lightness, which survives CVD.
-PROTECTIVE = [
-    (0.72, 0.135, 68),
-    (0.50, 0.11, 32),
-    (0.82, 0.10, 88),
-    (0.60, 0.13, 48),
-    (0.66, 0.075, 60),
-]
-PROTECTIVE_NAMES = ["amber", "ember", "wheat", "orange", "tan"]
-
-ALERTING = [
-    (0.56, 0.130, 256),
-    (0.62, 0.118, 196),
-    (0.85, 0.072, 205),
-    (0.37, 0.095, 266),
-    (0.71, 0.105, 232),
-]
-ALERTING_NAMES = ["blue", "teal", "ice", "indigo", "sky"]
-
-
 if __name__ == "__main__":
-    report("PROTECTIVE (warm, M/P<1)", PROTECTIVE, PROTECTIVE_NAMES)
-    report("ALERTING  (cool, M/P>1)", ALERTING, ALERTING_NAMES)
     report_curated_accent()
     report_accent(k=5)  # raw farthest-point search, for reference (metric-max, garish)

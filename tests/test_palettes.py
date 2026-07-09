@@ -1,8 +1,9 @@
-"""circadia_sweep (full-axis / teaching) and circadia_diverging (signed-data) palettes.
+"""Generated-palette tests: circadia_sweep / circadia_diverging, and the Circadia accent palette.
 
-The sweep's defining property is that its melanopic ratio rises ~linearly with the data value
-while lightness stays monotone (ordered); the diverging map's is a neutral (M/P = 1) centre with a
-warm protective arm and a cool alerting arm. Checked here against the rater and OKLab lightness.
+The sweep's defining property is that its melanopic ratio rises ~linearly with the data value while
+lightness stays monotone (ordered); the diverging map's is a neutral (M/P = 1) centre with a warm
+protective arm and a cool alerting arm. The accent palette must sit far from the family's colour
+footprint and stay CVD-distinct. Checked here against the rater, OKLab lightness, and CAM02-UCS.
 """
 
 import colorspacious as cs
@@ -75,13 +76,13 @@ def test_new_maps_register():
     mp.register()
     assert "circadia_sweep" in plt.colormaps()
     assert "circadia_diverging" in plt.colormaps()
-    assert "melanopy_qualitative" in plt.colormaps()
 
 
-# --- the neutral qualitative palette -----------------------------------------------------------
-# Circadian-neutral by design: optimised for CVD separability, not melanopic content. We assert
-# what it *is* for (colours stay distinct under dichromacy) and confirm it is not secretly tuned
-# to one regime (its swatches straddle display white, M/P = 1).
+# --- the Circadia accent palette ---------------------------------------------------------------
+# Marks laid over a Circadia fill. Locked against drift: recompute the family footprint from the
+# *current* generator and assert each accent colour still sits far from it, and that the set stays
+# mutually distinct under CVD. (The build script is only a derivation aid; these floors are the
+# contract, so the baked hex can be curated as long as it clears them.)
 
 
 def _min_cam02_separation(rgb):
@@ -95,63 +96,6 @@ def _cvd_sim(rgb, cvd):
     """Machado-2009 dichromacy simulation (severity 100) of an sRGB set."""
     space = {"name": "sRGB1+CVD", "cvd_type": cvd, "severity": 100}
     return np.clip(cs.cspace_convert(np.clip(rgb, 0, 1), space, "sRGB1"), 0, 1)
-
-
-def test_qualitative_palette_is_a_listed_cmap():
-    assert isinstance(mp.QUALITATIVE, ListedColormap)
-    assert mp.QUALITATIVE.name == "melanopy_qualitative"
-    assert len(mp.QUALITATIVE_DARK) == len(mp.QUALITATIVE_LIGHT) == len(mp.QUALITATIVE_NAMES) == 7
-
-
-def test_qualitative_is_cvd_distinct():
-    # every swatch stays well separated under normal vision and all three dichromacies (min
-    # CAM02-UCS distance well above the ~1-2 unit confusion floor)
-    for hexes in (mp.QUALITATIVE_DARK, mp.QUALITATIVE_LIGHT):
-        rgb = np.array([to_rgb(c) for c in hexes])
-        assert _min_cam02_separation(rgb) > 8.0
-        for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
-            assert _min_cam02_separation(_cvd_sim(rgb, cvd)) > 8.0
-
-
-def test_qualitative_straddles_the_axis():
-    # not tuned to one regime — the swatches span both sides of display white (M/P = 1), so the
-    # palette as a whole sits on neither end of the melanopic axis
-    for hexes in (mp.QUALITATIVE_DARK, mp.QUALITATIVE_LIGHT):
-        m = mp.melanopic_ratio(np.array([to_rgb(c) for c in hexes]))
-        assert m.min() < 1.0 < m.max()
-
-
-# --- the regime-themed qualitative palettes ----------------------------------------------------
-# Unlike the neutral set these ARE chromatically aligned with the melanopic regimes: every
-# protective swatch sits below display white, every alerting swatch above it. Confined to one hue
-# wedge, so smaller (5 colours) — but still CVD-distinct under all three dichromacies.
-
-
-def test_themed_qualitative_names_match():
-    assert len(mp.QUALITATIVE_PROTECTIVE) == len(mp.QUALITATIVE_PROTECTIVE_NAMES) == 5
-    assert len(mp.QUALITATIVE_ALERTING) == len(mp.QUALITATIVE_ALERTING_NAMES) == 5
-
-
-def test_themed_qualitative_are_on_theme():
-    prot = mp.melanopic_ratio(np.array([to_rgb(c) for c in mp.QUALITATIVE_PROTECTIVE]))
-    alert = mp.melanopic_ratio(np.array([to_rgb(c) for c in mp.QUALITATIVE_ALERTING]))
-    assert np.all(prot < 1.0)  # protective set is entirely warm / low-melanopic
-    assert np.all(alert > 1.0)  # alerting set is entirely cool / high-melanopic
-
-
-def test_themed_qualitative_are_cvd_distinct():
-    for hexes in (mp.QUALITATIVE_PROTECTIVE, mp.QUALITATIVE_ALERTING):
-        rgb = np.array([to_rgb(c) for c in hexes])
-        assert _min_cam02_separation(rgb) > 8.0
-        for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
-            assert _min_cam02_separation(_cvd_sim(rgb, cvd)) > 8.0
-
-
-# --- the Circadia accent palette ---------------------------------------------------------------
-# Marks laid over a Circadia fill. Locked against drift: recompute the family footprint from the
-# *current* generator and assert each accent colour still sits far from it, and that the set stays
-# mutually distinct under CVD. (The build script is only a derivation aid; these floors are the
-# contract, so the baked hex can be curated as long as it clears them.)
 
 
 def test_circadia_accent_names_match():
@@ -172,48 +116,3 @@ def test_circadia_accent_is_cvd_distinct():
     assert _min_cam02_separation(acc) > 15.0
     for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
         assert _min_cam02_separation(_cvd_sim(acc, cvd)) > 15.0
-
-
-# --- the hypnogram sleep-stage palette ---------------------------------------------------------
-# The worked example: the axis *used* on ordered circadian data. The five stages walk a diagonal
-# through the OKLab geometry, monotone in both lightness and melanopic ratio (Wake alerting -> N3
-# protective, deep = dark); REM is hue-offset and Artifact/Unscored are out-of-band greys.
-
-
-def _stage_rgb(stages):
-    return np.array([to_rgb(mp.HYPNOGRAM[s]) for s in stages])
-
-
-def test_hypnogram_keys():
-    assert mp.HYPNOGRAM_STAGES == ["Wake", "REM", "N1", "N2", "N3"]
-    assert set(mp.HYPNOGRAM) == {"Wake", "REM", "N1", "N2", "N3", "Artifact", "Unscored"}
-
-
-def test_hypnogram_monotone_lightness_and_melanopic():
-    rgb = _stage_rgb(mp.HYPNOGRAM_STAGES)  # Wake -> REM -> N1 -> N2 -> N3
-    assert np.all(np.diff(_oklab_L(rgb)) < 0)  # lightness falls: deep sleep dark, order CVD-safe
-    assert np.all(np.diff(mp.melanopic_ratio(rgb)) < 0)  # M/P falls: Wake alerting -> N3 protective
-
-
-def test_hypnogram_is_cvd_distinct():
-    rgb = _stage_rgb(["Wake", "REM", "N1", "N2", "N3", "Artifact", "Unscored"])
-    assert _min_cam02_separation(rgb) > 8.0
-    for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
-        assert _min_cam02_separation(_cvd_sim(rgb, cvd)) > 8.0
-
-
-def test_hypnogram_rem_is_off_spine():
-    # REM is alerting (near Wake) but hue-offset, so it is well separated from Wake AND N1
-    rem, wake, n1 = _stage_rgb(["REM", "Wake", "N1"])
-    for other in (wake, n1):
-        lab = cs.cspace_convert(np.stack([rem, other]), "sRGB1", "CAM02-UCS")
-        assert np.linalg.norm(lab[0] - lab[1]) > 15.0
-
-
-def test_hypnogram_greys_are_out_of_band():
-    # Artifact / Unscored are not stages: near-neutral (low chroma) and circadian-neutral (M/P ~ 1)
-    for label in ("Artifact", "Unscored"):
-        rgb = np.array(to_rgb(mp.HYPNOGRAM[label]))
-        _, a, b = cs.cspace_convert(np.clip(rgb, 0, 1), "sRGB1", "CAM02-UCS")
-        assert np.hypot(a, b) < 5.0  # low chroma (grey)
-        assert abs(mp.melanopic_ratio(rgb)[0] - 1.0) < 0.05  # neutral grey ~ display white

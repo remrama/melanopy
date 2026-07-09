@@ -7,6 +7,7 @@ measurable, scores existing maps on it, and provides a one-parameter family that
 walks the axis while holding uniformity and colourblind-safety fixed.
 """
 
+from .accent import CIRCADIA_ACCENT, CIRCADIA_ACCENT_NAMES
 from .adapters.mpl import register
 from .generator import (
     EQUILUX,
@@ -16,19 +17,6 @@ from .generator import (
     circadia_diverging,
     circadia_sweep,
     circadian_cmap,
-)
-from .hypnogram import HYPNOGRAM, HYPNOGRAM_STAGES
-from .qualitative import (
-    CIRCADIA_ACCENT,
-    CIRCADIA_ACCENT_NAMES,
-    QUALITATIVE,
-    QUALITATIVE_ALERTING,
-    QUALITATIVE_ALERTING_NAMES,
-    QUALITATIVE_DARK,
-    QUALITATIVE_LIGHT,
-    QUALITATIVE_NAMES,
-    QUALITATIVE_PROTECTIVE,
-    QUALITATIVE_PROTECTIVE_NAMES,
 )
 from .rater import circadia_rating, melanopic_ratio, rate_colormap
 
@@ -43,18 +31,8 @@ __all__ = [
     "melanopic_ratio",
     "rate_colormap",
     "circadia_rating",
-    "QUALITATIVE_DARK",
-    "QUALITATIVE_LIGHT",
-    "QUALITATIVE_NAMES",
-    "QUALITATIVE",
-    "QUALITATIVE_PROTECTIVE",
-    "QUALITATIVE_PROTECTIVE_NAMES",
-    "QUALITATIVE_ALERTING",
-    "QUALITATIVE_ALERTING_NAMES",
     "CIRCADIA_ACCENT",
     "CIRCADIA_ACCENT_NAMES",
-    "HYPNOGRAM",
-    "HYPNOGRAM_STAGES",
     "register",
     "__version__",
 ]

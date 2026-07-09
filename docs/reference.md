@@ -28,57 +28,23 @@ and **`XENON`** (`alpha=1.0`) are exported as ready-made `matplotlib.colors.List
 
 ::: melanopy.register
 
-## Qualitative palettes
+## Accent palette
 
-The CVD-safe qualitative palette is exposed as `QUALITATIVE` (a `ListedColormap`), with the raw hex
-lists `QUALITATIVE_DARK` / `QUALITATIVE_LIGHT` and `QUALITATIVE_NAMES`. It is **circadian-neutral by
-design**: small qualitative marks emit negligible light regardless of colour (the area-weighted
-budget), so this palette is optimised for category separability under colour-vision deficiency, not
-for melanopic content — its swatches straddle the axis, and the melanopic ratio is reported, never
-tuned. One palette therefore serves every circadian regime.
-
-```python
->>> import melanopy as mp
->>> mp.QUALITATIVE_NAMES
-['amber', 'sky', 'teal', 'yellow', 'blue', 'vermillion', 'rose']
->>> mp.QUALITATIVE_DARK[:3]
-['#F2A036', '#81CAF0', '#009C89']
-```
-
-**Regime-themed variants.** When you *want* qualitative marks to harmonise with the display's
-circadian regime — or for large qualitative fills, where the axis does apply — reach for
-`QUALITATIVE_PROTECTIVE` (warm, every swatch M/P < 1) or `QUALITATIVE_ALERTING` (cool, every swatch
-M/P > 1), each with a matching `_NAMES` list. These are *chromatically* aligned with the regime (an
-aesthetic choice, not a light-dose claim); confined to one hue wedge, they are smaller (5 colours)
-and lower-contrast than the neutral set, though still CVD-distinct under simulation.
-
-```python
->>> mp.QUALITATIVE_ALERTING_NAMES
-['blue', 'teal', 'ice', 'indigo', 'sky']
-```
-
-**Accent marks over a fill.** `CIRCADIA_ACCENT` (with `CIRCADIA_ACCENT_NAMES`) is a small set of
-high-chroma colours for marks — ticks, points, event lines — drawn *over* a Circadia fill. They are
-chosen to sit outside the family's colour footprint across all α (so they pop over warm and cool
-fills alike) and to stay mutually distinct under colour-vision deficiency. They are deliberately
-vivid — that is the job.
-
-## Hypnogram palette
-
-`HYPNOGRAM` is a labelled stage → colour dict for hypnograms and hypnodensity plots — the melanopic
-axis *used* on data rather than scored against. The five stages (`HYPNOGRAM_STAGES`) walk a diagonal
-through the OKLab geometry: ordered by cortical activation (Wake > REM > N1 > N2 > N3), monotone in
-both lightness (light Wake → dark N3, so deep sleep reads dark and the order survives CVD) and
-melanopic ratio (alerting Wake → protective N3). REM is hue-offset off the warm↔cool spine so it
-stays distinct from Wake and N1; `Artifact` and `Unscored` are out-of-band greys (not stages).
+`CIRCADIA_ACCENT` (with `CIRCADIA_ACCENT_NAMES`) is a small set of vivid colours for qualitative
+marks — ticks, points, event lines — drawn *over* a Circadia colormap fill, where ordinary
+qualitative colours can be lost against the fill or clash with it. They are chosen to sit outside the
+family's colour footprint across the whole axis (so they contrast with warm *and* cool fills) and to
+stay mutually distinct under colour-vision deficiency — which confines them to the
+magenta/violet/green arc. Vivid by design.
 
 ```python
 >>> import melanopy as mp
->>> mp.HYPNOGRAM["Wake"]  # wake: light and cool (alerting)
-'#3dd5df'
->>> mp.HYPNOGRAM["N3"]  # deep sleep: dark and warm (protective)
-'#551207'
+>>> mp.CIRCADIA_ACCENT_NAMES
+['orchid', 'grape', 'emerald', 'lime']
 ```
+
+For qualitative marks that are *not* over a fill, the melanopic axis does not apply (small marks emit
+negligibly) — any CVD-safe qualitative palette (e.g. ColorBrewer, Okabe–Ito) serves.
 
 ## Adding a measured panel
 

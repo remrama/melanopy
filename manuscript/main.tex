@@ -186,16 +186,9 @@ A daytime alertness display and an overnight sleep-lab display want opposite end
 \par
 \textbf{The area-weighted melanopic budget.} Why does the axis matter for some marks and not others?
 Because emitted light scales with screen area. Large fills --- spectrograms, density maps, heat maps --- cover a big fraction of the display and dominate the light it emits, so the axis matters for them.
-Small qualitative marks --- lines, points, glyphs --- emit negligibly regardless of their colour, so for them the axis is effectively \emph{``ignore it''}: a CVD-safe qualitative palette serves every circadian regime.
+Small qualitative marks --- lines, points, glyphs --- emit negligibly regardless of their colour, so for them the axis is effectively \emph{``ignore it''}: any CVD-safe qualitative palette serves, and none needs to react to the regime.
 This split is a design principle, not a limitation: it tells us to spend the melanopic budget on \emph{sequential fills} and to keep qualitative colour a separate concern.
-(\textbf{Melanopy} ships a CVD-safe \emph{neutral} qualitative palette for this case --- optimised for category separability, not melanopic content; it stays well-separated under simulated colour blindness, Fig.~\ref{fig:melanopic-colormaps}.)
-Where qualitative colour should instead \emph{track} the regime --- themed protective/alerting sets, accent marks that sit over a Circadia fill, or an ordered sleep-stage palette --- \textbf{melanopy} provides regime-aware qualitative palettes too (Section~\ref{sec:applications}).
-
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\columnwidth]{melanopic_colormaps.png}
-    \caption{The area-weighted budget in practice. \emph{Top:} the protective endpoint Sodium under simulated dichromacy stays order-preserving --- lightness does the ordering work. \emph{Middle/bottom:} the CVD-safe qualitative palette stays well-separated under colour blindness, so one palette serves every circadian regime.}\label{fig:melanopic-colormaps} % chktex 12
-\end{figure}
+The one exception is a mark that must sit \emph{over} a large fill, where it can be lost against the colormap or clash with it; for that case \textbf{melanopy} provides \texttt{CIRCADIA\_ACCENT}, a small high-chroma set chosen to stay clear of the family's colours across the whole axis and to remain distinct under simulated colour blindness.
 
 \paragraph{The spectral half: from a spectrum to three coefficients.}
 The melanopic content of light is a standardized quantity, and we adopt the standard rather than approximate it.
@@ -459,17 +452,6 @@ Which screen region carries the dose depends on the view: a raw montage is spars
 This is precisely where our reference deployment, SMACC --- a PyQt6/pyqtgraph sleep- and dream-research tool --- exposes $\alpha$ as a live slider over the large-fill colormaps (spectrogram, hypnogram density, topographic maps), while qualitative line and scatter views, whose emission is negligible (Section~\ref{sec:axis}), need not react.
 The same room supports the protective tail pointed the other way: light emitted toward the sleeping patient is a leak to be minimised --- a geometry problem (emission onto the operator, away from the sleeper) combined with a low-$\alpha$ theme on any patient-facing surface.
 This dual use within a single room is the concrete integration target for \textbf{melanopy} in downstream tooling, which we do not evaluate here.
-
-The same displays also carry discrete marks that the area-weighted budget (Section~\ref{sec:axis}) exempts from the axis --- and where those marks should nonetheless read \emph{with} the regime, \textbf{melanopy} supplies regime-aware qualitative palettes.
-The clearest case is the hypnogram itself: sleep stages are ordered by cortical activation (Wake $>$ REM $>$ N1 $>$ N2 $>$ N3), so a stage palette can walk the same OKLab geometry as the family, co-varying colour temperature (alerting Wake $\rightarrow$ protective N3, an emergent monotone melanopic ratio) with lightness (light Wake $\rightarrow$ dark N3, so deep sleep reads dark and the ordering survives dichromacy).
-REM, whose EEG is wake-like, sits near the alerting end but hue-offset off the warm--cool spine so it stays distinct; artefact and unscored epochs are out-of-band greys.
-The stage colour thus \emph{is} its place on the melanopic axis --- the axis used to carry data rather than merely scored against it (Fig.~\ref{fig:hypnogram}) --- while themed protective/alerting sets and Circadia-matched accent marks cover the same need for scatter, events, and annotations.
-
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\columnwidth]{hypnogram.png}
-    \caption{The hypnogram palette --- the melanopic axis used to \emph{carry} ordered data rather than score it. \emph{Top:} a night's stages coloured by the palette; colour is each stage's place on the axis, and lightness falls with sleep depth. \emph{Middle:} the five stages walk the axis, alerting Wake $\rightarrow$ protective N3, with a monotone melanopic ratio; artefact and unscored epochs are out-of-band greys. \emph{Bottom:} under simulated dichromacy the stage order survives, because lightness carries it.}\label{fig:hypnogram} % chktex 12
-\end{figure}
 
 Bedside neuromonitoring generalises the patient-facing case with higher stakes.
 Colour density spectral array and amplitude-integrated EEG are colormap displays that run continuously at the bedside, beside a patient whose circadian system is already under stress and whose environment increasingly reflects cycled-lighting protocols in neonatal intensive care~\cite{morag2024cycled}.
