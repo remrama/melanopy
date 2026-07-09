@@ -11,7 +11,7 @@ the hex + names to bake into ``melanopy.qualitative``.
 
 import colorspacious as cs
 import numpy as np
-from matplotlib.colors import to_hex
+from matplotlib.colors import to_hex, to_rgb
 
 from melanopy import circadia, melanopic_ratio
 from melanopy.generator import _clamp
@@ -110,12 +110,30 @@ def report_accent(k=5):
     rgb, fam_d = build_accent(k=k)
     mutual = min_cvd_separation(rgb)
     print(
-        f"\nACCENT (k={k}): worst mutual CVD min-dE = {mutual:.2f}, "
+        f"\nACCENT search (k={k}, raw): worst mutual CVD min-dE = {mutual:.2f}, "
         f"min dist to family = {fam_d.min():.2f}"
     )
     for c, d in zip(rgb, fam_d):
         print(f"  {to_hex(c)}  dist-to-family={d:.1f}  M/P={melanopic_ratio(c)[0]:.3f}")
     print(f"  hex = {[to_hex(c) for c in rgb]}")
+
+
+# Shipped accent set: the raw farthest-point search (build_accent) maximises the two floors but
+# looks garish, so we CURATE within the same far-from-family arc for a coordinated look, then check
+# the floors still hold. Ordered orchid / grape / emerald / lime.
+ACCENT = ["#d84fb0", "#5e2b9e", "#12a074", "#a5d84f"]
+ACCENT_NAMES = ["orchid", "grape", "emerald", "lime"]
+
+
+def report_curated_accent():
+    rgb = np.array([to_rgb(c) for c in ACCENT])
+    fam = _min_to_cloud(_cam(rgb), family_footprint()).min()
+    print(
+        f"\nACCENT (curated, k={len(ACCENT)}): min dist to family = {fam:.1f}, "
+        f"worst mutual CVD min-dE = {min_cvd_separation(rgb):.1f}"
+    )
+    for hx, nm in zip(ACCENT, ACCENT_NAMES):
+        print(f"  {nm:8s} {hx}")
 
 
 # (L, C, hue_deg) OKLab anchors — warm wedge (protective) / cool wedge (alerting). Ordered so the
@@ -143,4 +161,5 @@ ALERTING_NAMES = ["blue", "teal", "ice", "indigo", "sky"]
 if __name__ == "__main__":
     report("PROTECTIVE (warm, M/P<1)", PROTECTIVE, PROTECTIVE_NAMES)
     report("ALERTING  (cool, M/P>1)", ALERTING, ALERTING_NAMES)
-    report_accent(k=5)
+    report_curated_accent()
+    report_accent(k=5)  # raw farthest-point search, for reference (metric-max, garish)

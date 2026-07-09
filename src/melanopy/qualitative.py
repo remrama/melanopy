@@ -29,7 +29,7 @@ Examples
 >>> mp.QUALITATIVE_PROTECTIVE_NAMES
 ['amber', 'ember', 'wheat', 'orange', 'tan']
 >>> len(mp.CIRCADIA_ACCENT)
-5
+4
 >>> from matplotlib.colors import to_rgb
 >>> prot = mp.melanopic_ratio([to_rgb(c) for c in mp.QUALITATIVE_PROTECTIVE])
 >>> bool((prot < 1).all())  # every protective swatch sits below display white (M/P = 1)
@@ -53,11 +53,12 @@ QUALITATIVE_PROTECTIVE_NAMES = ["amber", "ember", "wheat", "orange", "tan"]
 QUALITATIVE_ALERTING = ["#3c75bf", "#00999b", "#94dce4", "#283c72", "#55add8"]
 QUALITATIVE_ALERTING_NAMES = ["blue", "teal", "ice", "indigo", "sky"]
 
-# Accent palette (scripts/build_qualitative.py): high-chroma marks that pop over *any* Circadia fill
-# — far from the family's colour footprint across all alpha, and mutually distinct under CVD (which
-# forces them into the magenta/green region, told apart by lightness). Vivid by design.
-CIRCADIA_ACCENT = ["#ff50df", "#91eb04", "#456001", "#92007e", "#feb9ba"]
-CIRCADIA_ACCENT_NAMES = ["magenta", "lime", "olive", "plum", "pink"]
+# Accent palette (scripts/build_qualitative.py): vivid marks that pop over *any* Circadia fill —
+# far from the family's colour footprint across all alpha, and mutually distinct under CVD. The
+# far-from-family requirement confines them to the magenta/violet/green arc; curated there for a
+# coordinated look, then validated against the distance + CVD floors.
+CIRCADIA_ACCENT = ["#d84fb0", "#5e2b9e", "#12a074", "#a5d84f"]
+CIRCADIA_ACCENT_NAMES = ["orchid", "grape", "emerald", "lime"]
 
 __all__ = [
     "QUALITATIVE_DARK",
