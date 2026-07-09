@@ -36,16 +36,15 @@ from .generator import _CA, _L, _POS, _WA, _clamp
 
 HYPNOGRAM_STAGES = ["Wake", "REM", "N1", "N2", "N3"]
 
-# Per-stage (lightness, temperature) on the activation diagonal, temperature 0 (warm/protective) ..
-# 1 (cool/alerting): Wake light & alerting; N3 dark & protective; N1/N2/N3 clustered in temperature
-# near the protective end, told apart by lightness (which survives CVD).
-_SPINE = {
-    "Wake": (0.80, 1.00),
-    "N1": (0.56, 0.22),
-    "N2": (0.44, 0.12),
-    "N3": (0.30, 0.00),
-}
+_WAKE_LT = (0.80, 1.00)  # Wake: (lightness, temperature) at the family's light, cool, alerting end
 _REM_L, _REM_C, _REM_HUE = 0.68, 0.13, 340.0  # off-spine orchid, between Wake and N1 in activation
+# NREM: a clean warm ramp (amber -> sienna -> rust) as (L, C, hue), lightness falling with depth.
+# Kept off the family's own warm chroma so the deep end reads as rich rust, not a muddy brown.
+_NREM = {
+    "N1": (0.63, 0.085, 66),
+    "N2": (0.48, 0.105, 54),
+    "N3": (0.34, 0.100, 46),
+}
 _ARTIFACT_L, _UNSCORED_L = 0.50, 0.85  # out-of-band neutral greys (not stages)
 
 
@@ -64,11 +63,11 @@ def _hue_color(lightness, chroma, hue_deg):
 
 
 HYPNOGRAM = {
-    "Wake": to_hex(_spine_color(*_SPINE["Wake"])),
+    "Wake": to_hex(_spine_color(*_WAKE_LT)),
     "REM": to_hex(_hue_color(_REM_L, _REM_C, _REM_HUE)),
-    "N1": to_hex(_spine_color(*_SPINE["N1"])),
-    "N2": to_hex(_spine_color(*_SPINE["N2"])),
-    "N3": to_hex(_spine_color(*_SPINE["N3"])),
+    "N1": to_hex(_hue_color(*_NREM["N1"])),
+    "N2": to_hex(_hue_color(*_NREM["N2"])),
+    "N3": to_hex(_hue_color(*_NREM["N3"])),
     "Artifact": to_hex(_hue_color(_ARTIFACT_L, 0.0, 0.0)),
     "Unscored": to_hex(_hue_color(_UNSCORED_L, 0.0, 0.0)),
 }
