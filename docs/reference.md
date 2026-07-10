@@ -3,6 +3,27 @@
 The public API is curated in `melanopy.__all__`. Everything below is importable directly from the
 top-level package, e.g. `import melanopy as mp; mp.rate_colormap(...)`.
 
+```python exec="true" session="mpl"
+# Docs setup (hidden): render matplotlib figures inline by making plt.show() emit an SVG.
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+
+def _render_svg(*args, **kwargs):
+    from io import StringIO
+
+    for num in plt.get_fignums():
+        buffer = StringIO()
+        plt.figure(num).savefig(buffer, format="svg", bbox_inches="tight")
+        print(buffer.getvalue())
+    plt.close("all")
+
+
+plt.show = _render_svg
+```
+
 ## Rating
 
 ::: melanopy.rate_colormap
@@ -16,7 +37,7 @@ top-level package, e.g. `import melanopy as mp; mp.rate_colormap(...)`.
 The `circadia(alpha)` family walks from protective (warm) to alerting (cool) while holding lightness
 and CVD-recoverability fixed. Each member is a drop-in matplotlib colormap:
 
-```python
+```python exec="true" source="above" html="true" session="mpl"
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -32,8 +53,6 @@ for ax, alpha in zip(axes, [0.0, 0.25, 0.55, 0.75, 1.0]):
 plt.show()
 ```
 
-![The Circadia family from Sodium (α=0) through Equilux (α=0.55) to Xenon (α=1)](assets/figures/circadia_family.png){ loading=lazy }
-
 ::: melanopy.circadia
 
 `circadian_cmap` is an alias of `circadia`.
@@ -46,23 +65,22 @@ plt.show()
 ~linearly with the data value); `circadia_diverging` is a warm↔cool diverging map, neutral at the
 zero crossing:
 
-```python
+```python exec="true" source="above" html="true" session="mpl"
 import matplotlib.pyplot as plt
 import numpy as np
 
 import melanopy as mp
 
 grad = np.linspace(0, 1, 256).reshape(1, -1)
-for name, cmap in [("circadia_sweep", mp.circadia_sweep(as_cmap=True)),
-                   ("circadia_diverging", mp.circadia_diverging(as_cmap=True))]:
-    plt.figure(figsize=(7, 0.5))
-    plt.imshow(grad, aspect="auto", cmap=cmap)
-    plt.title(name, loc="left")
-    plt.axis("off")
+maps = [("circadia_sweep", mp.circadia_sweep(as_cmap=True)),
+        ("circadia_diverging", mp.circadia_diverging(as_cmap=True))]
+fig, axes = plt.subplots(2, 1, figsize=(7, 1.2))
+for ax, (name, cmap) in zip(axes, maps):
+    ax.imshow(grad, aspect="auto", cmap=cmap)
+    ax.set_title(name, loc="left", fontsize=9)
+    ax.set_axis_off()
 plt.show()
 ```
-
-![circadia_sweep and circadia_diverging shown as horizontal ramps](assets/figures/circadia_special.png){ loading=lazy }
 
 The named anchors **`SODIUM`** (`alpha=0.0`), **`EQUILUX`** (`alpha=0.55`, the M/P = 1 crossover),
 and **`XENON`** (`alpha=1.0`) are exported as ready-made `matplotlib.colors.ListedColormap` objects.
@@ -86,7 +104,7 @@ magenta/violet/green arc. Vivid by design.
 ['orchid', 'grape', 'emerald', 'lime']
 ```
 
-```python
+```python exec="true" source="above" html="true" session="mpl"
 import matplotlib.pyplot as plt
 
 import melanopy as mp
@@ -99,8 +117,6 @@ ax.set(xlim=(0, 4), ylim=(0, 1))
 ax.set_axis_off()
 plt.show()
 ```
-
-![The Circadia accent palette: orchid, grape, emerald, lime](assets/figures/accent_swatches.png){ loading=lazy }
 
 For qualitative marks that are *not* over a fill, the melanopic axis does not apply (small marks emit
 negligibly) — any CVD-safe qualitative palette (e.g. ColorBrewer, Okabe–Ito) serves.

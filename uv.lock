@@ -580,6 +580,18 @@ wheels = [
 ]
 
 [[package]]
+name = "markdown-exec"
+version = "1.12.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pymdown-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6d/76/c47da8edb6a12b066728432fb3724109d9d91de5331df5073d12d272493f/markdown_exec-1.12.3.tar.gz", hash = "sha256:006b9cac46470a9499797bc9c579305ae4719e0a8e495e5401dfbf1e66ce7fb4", size = 77841, upload-time = "2026-07-07T09:53:13.838Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ad/a7/0279016386d611183ccc508c5688eb1e2133e8182164d7a2c6213b176f69/markdown_exec-1.12.3-py3-none-any.whl", hash = "sha256:48ac12a565f3f4331b1acd9efc48a0773e717eb7ca7c38e23c1d72ee61660de6", size = 37995, upload-time = "2026-07-07T09:53:12.619Z" },
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "4.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -820,6 +832,7 @@ dev = [
     { name = "ruff" },
 ]
 docs = [
+    { name = "markdown-exec" },
     { name = "mkdocstrings-python" },
     { name = "zensical" },
 ]
@@ -831,6 +844,7 @@ qt = [
 requires-dist = [
     { name = "colorspacious", marker = "extra == 'dev'", specifier = ">=1.1.2" },
     { name = "ipython", marker = "extra == 'dev'", specifier = ">=9.14.0" },
+    { name = "markdown-exec", marker = "extra == 'docs'", specifier = ">=1.8.0" },
     { name = "matplotlib", specifier = ">=3.11.0" },
     { name = "mdformat", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "mdformat-frontmatter", marker = "extra == 'dev'", specifier = ">=2.1.2" },
