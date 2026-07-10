@@ -13,6 +13,27 @@ top-level package, e.g. `import melanopy as mp; mp.rate_colormap(...)`.
 
 ## Generator — the Circadia family
 
+The `circadia(alpha)` family walks from protective (warm) to alerting (cool) while holding lightness
+and CVD-recoverability fixed. Each member is a drop-in matplotlib colormap:
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+import melanopy as mp
+
+grad = np.linspace(0, 1, 256).reshape(1, -1)
+fig, axes = plt.subplots(5, 1, figsize=(7, 3))
+for ax, alpha in zip(axes, [0.0, 0.25, 0.55, 0.75, 1.0]):
+    ax.imshow(grad, aspect="auto", cmap=mp.circadia(alpha, as_cmap=True))
+    ax.set_ylabel(f"α = {alpha}", rotation=0, ha="right", va="center")
+    ax.set_xticks([])
+    ax.set_yticks([])
+plt.show()
+```
+
+![The Circadia family from Sodium (α=0) through Equilux (α=0.55) to Xenon (α=1)](assets/figures/circadia_family.png){ loading=lazy }
+
 ::: melanopy.circadia
 
 `circadian_cmap` is an alias of `circadia`.
@@ -20,6 +41,28 @@ top-level package, e.g. `import melanopy as mp; mp.rate_colormap(...)`.
 ::: melanopy.circadia_sweep
 
 ::: melanopy.circadia_diverging
+
+`circadia_sweep` walks the whole axis along one ramp (a teaching map whose melanopic ratio rises
+~linearly with the data value); `circadia_diverging` is a warm↔cool diverging map, neutral at the
+zero crossing:
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+import melanopy as mp
+
+grad = np.linspace(0, 1, 256).reshape(1, -1)
+for name, cmap in [("circadia_sweep", mp.circadia_sweep(as_cmap=True)),
+                   ("circadia_diverging", mp.circadia_diverging(as_cmap=True))]:
+    plt.figure(figsize=(7, 0.5))
+    plt.imshow(grad, aspect="auto", cmap=cmap)
+    plt.title(name, loc="left")
+    plt.axis("off")
+plt.show()
+```
+
+![circadia_sweep and circadia_diverging shown as horizontal ramps](assets/figures/circadia_special.png){ loading=lazy }
 
 The named anchors **`SODIUM`** (`alpha=0.0`), **`EQUILUX`** (`alpha=0.55`, the M/P = 1 crossover),
 and **`XENON`** (`alpha=1.0`) are exported as ready-made `matplotlib.colors.ListedColormap` objects.
@@ -42,6 +85,22 @@ magenta/violet/green arc. Vivid by design.
 >>> mp.CIRCADIA_ACCENT_NAMES
 ['orchid', 'grape', 'emerald', 'lime']
 ```
+
+```python
+import matplotlib.pyplot as plt
+
+import melanopy as mp
+
+fig, ax = plt.subplots(figsize=(7, 1.2))
+for i, (color, name) in enumerate(zip(mp.CIRCADIA_ACCENT, mp.CIRCADIA_ACCENT_NAMES)):
+    ax.add_patch(plt.Rectangle((i, 0), 0.9, 1, color=color))
+    ax.text(i + 0.45, -0.12, name, ha="center", va="top")
+ax.set(xlim=(0, 4), ylim=(0, 1))
+ax.set_axis_off()
+plt.show()
+```
+
+![The Circadia accent palette: orchid, grape, emerald, lime](assets/figures/accent_swatches.png){ loading=lazy }
 
 For qualitative marks that are *not* over a fill, the melanopic axis does not apply (small marks emit
 negligibly) — any CVD-safe qualitative palette (e.g. ColorBrewer, Okabe–Ito) serves.
