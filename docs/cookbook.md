@@ -3,12 +3,33 @@
 Short, copy-pasteable recipes. Each is self-contained — `import melanopy as mp` and go. For the
 functions they draw on, see the [API reference](reference.md).
 
+```python exec="true" session="mpl"
+# Docs setup (hidden): render matplotlib figures inline by making plt.show() emit an SVG.
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+
+def _render_svg(*args, **kwargs):
+    from io import StringIO
+
+    for num in plt.get_fignums():
+        buffer = StringIO()
+        plt.figure(num).savefig(buffer, format="svg", bbox_inches="tight")
+        print(buffer.getvalue())
+    plt.close("all")
+
+
+plt.show = _render_svg
+```
+
 ## Rank a set of colormaps
 
 `melanopic_ratio` is the **M/P mean** — *where* a map sits (display white = 1.0; under 1
 protective, over 1 alerting); `mp_spread` is the **M/P spread (σ)** — *how tightly* it sits.
 
-```python
+```python exec="true" source="above" result="text"
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -20,21 +41,13 @@ for name in ["copper", "magma", "viridis", "cool", "gray"]:
     print(f"{name:8s} M/P={s['melanopic_ratio']:.2f}  spread σ={s['mp_spread']:.2f}")
 ```
 
-```text
-copper   M/P=0.49  spread σ=0.03
-magma    M/P=0.72  spread σ=0.53
-viridis  M/P=0.83  spread σ=0.56
-cool     M/P=2.06  spread σ=0.58
-gray     M/P=1.00  spread σ=0.00
-```
-
 ## Read a colormap's melanopic profile
 
 The mean and spread summarize a *curve*. Ask for it with `profile=True` to see *where* a map dumps
 its blue — viridis spikes at the dark end (high σ, "smeared") while `copper` and `gray` stay flat
 (low σ, "pure").
 
-```python
+```python exec="true" source="above" result="text"
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -47,15 +60,14 @@ for name in ["viridis", "copper", "gray"]:
           f"mid M/P={p['ratios'][128]:.2f}")
 ```
 
-```text
-viridis  σ=0.56  dark-end M/P=3.06  mid M/P=1.21
-copper   σ=0.03  dark-end M/P=0.70  mid M/P=0.47
-gray     σ=0.00  dark-end M/P=1.00  mid M/P=1.00
-```
-
 To plot the full curve, use `p["positions"]` (the `[0, 1]` data grid) against `p["ratios"]`:
 
-```python
+```python exec="true" source="above" html="true" session="mpl"
+import matplotlib.pyplot as plt
+import numpy as np
+
+import melanopy as mp
+
 fig, ax = plt.subplots()
 for name in ["viridis", "copper", "gray"]:
     c = plt.get_cmap(name)(np.linspace(0, 1, 256))[:, :3]
@@ -73,7 +85,7 @@ plt.show()
 holding lightness uniform. Rating each step shows the melanopic ratio climb monotonically — the
 dial is an *emergent* property of the OKLab geometry, not a knob the generator sets.
 
-```python
+```python exec="true" source="above" result="text"
 import numpy as np
 
 import melanopy as mp
@@ -81,14 +93,6 @@ import melanopy as mp
 for a in np.linspace(0, 1, 5):
     ratio, spread = mp.circadia_rating(a)
     print(f"alpha={a:.2f}  M/P={ratio:.2f}  spread={spread:.2f}")
-```
-
-```text
-alpha=0.00  M/P=0.29  spread=0.07
-alpha=0.25  M/P=0.58  spread=0.02
-alpha=0.50  M/P=0.92  spread=0.13
-alpha=0.75  M/P=1.33  spread=0.29
-alpha=1.00  M/P=1.73  spread=0.42
 ```
 
 ![The Circadia family swept from protective to alerting](assets/figures/circadian_generator.png){ loading=lazy }
@@ -144,7 +148,7 @@ Overlaying ticks, points, or event lines on a Circadia fill? `CIRCADIA_ACCENT` h
 chosen to sit outside the family's colour footprint — so they pop over a warm *or* a cool fill —
 and to stay distinct under colour blindness.
 
-```python
+```python exec="true" source="above" html="true" session="mpl"
 import matplotlib.pyplot as plt
 import numpy as np
 
