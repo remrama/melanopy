@@ -9,7 +9,7 @@ def to_pyqtgraph(colors):
     """Wrap any (N, 3) sRGB ramp as a pyqtgraph ColorMap — the general escape hatch.
 
     The named wrappers below cover the Circadia family; reach for this for anything else
-    (a rated map, a categorical palette, or any third-party colormap sampled to an array).
+    (a rated map, a qualitative palette, or any third-party colormap sampled to an array).
     """
     import pyqtgraph as pg
 

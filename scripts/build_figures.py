@@ -23,7 +23,7 @@ import colorspacious as cs
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
-from matplotlib.colors import LinearSegmentedColormap, ListedColormap, to_rgb
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 from matplotlib.lines import Line2D
 
 import melanopy as mp
@@ -440,95 +440,6 @@ def fig_validation(path):
     plt.close(fig)
 
 
-# ----------------------------------------------------------------------------- melanopic colormaps
-def _pairwise_min(colors):
-    lab = cs.cspace_convert(np.clip(colors, 0, 1), "sRGB1", "CAM02-UCS")
-    d = np.linalg.norm(lab[:, None, :] - lab[None, :, :], axis=-1)
-    return d[d > 0].min()
-
-
-def fig_melanopic_colormaps(path):
-    sodium = mp.circadia(0.0)
-    cat = np.array([to_rgb(c) for c in mp.CATEGORICAL_DARK])
-    names = mp.CATEGORICAL_NAMES
-
-    _theme()
-    fig = plt.figure(figsize=(11, 10.5), facecolor=BG)
-    gs = fig.add_gridspec(
-        3,
-        1,
-        height_ratios=[1.5, 1.0, 1.5],
-        hspace=0.45,
-        left=0.10,
-        right=0.95,
-        top=0.93,
-        bottom=0.05,
-    )
-
-    # A: Sodium sequential under normal + CVD
-    gsa = gs[0].subgridspec(4, 1, hspace=0.45)
-    for k, (lab, kind) in enumerate(CVD):
-        ax = fig.add_subplot(gsa[k])
-        _strip(ax, _cvd(sodium, kind), lab)
-        if k == 0:
-            _title(
-                ax,
-                "Sodium (protective sequential) — order preserved under dichromacy "
-                "(lightness does the work)",
-            )
-
-    # B: categorical swatches
-    axc = fig.add_subplot(gs[1])
-    axc.set_facecolor(PANEL)
-    axc.set_xlim(0, len(cat))
-    axc.set_ylim(0, 1)
-    axc.set_xticks([])
-    axc.set_yticks([])
-    for sp in axc.spines.values():
-        sp.set_color(HAIR)
-    for i, c in enumerate(cat):
-        axc.add_patch(plt.Rectangle((i + 0.08, 0.30), 0.84, 0.62, color=c))
-        axc.text(i + 0.5, 0.14, names[i], ha="center", va="center", color=INK2, fontsize=8.5)
-    _title(
-        axc,
-        "CVD-safe categorical set — one palette serves every circadian regime "
-        "(area-weighted budget)",
-    )
-
-    # C: categorical under CVD (separability)
-    axt = fig.add_subplot(gs[2])
-    axt.set_facecolor(PANEL)
-    axt.set_xlim(0, len(cat))
-    axt.set_ylim(0, len(CVD))
-    axt.set_xticks([])
-    axt.set_yticks([])
-    for sp in axt.spines.values():
-        sp.set_color(HAIR)
-    for r, (lab, kind) in enumerate(CVD):
-        sim = _cvd(cat, kind)
-        y = len(CVD) - 1 - r
-        for i, c in enumerate(sim):
-            axt.add_patch(plt.Rectangle((i + 0.06, y + 0.12), 0.88, 0.76, color=c))
-        axt.text(
-            -0.1,
-            y + 0.5,
-            f"{lab}\nΔmin {_pairwise_min(sim):.2f}",
-            ha="right",
-            va="center",
-            color=INK2,
-            fontsize=8.5,
-        )
-    _title(
-        axt,
-        "Categorical under simulated dichromacy — min CAM02-UCS separation stays well "
-        "above the confusion floor",
-        size=10.5,
-    )
-
-    fig.savefig(path, dpi=120, facecolor=BG)
-    plt.close(fig)
-
-
 # --------------------------------------------------------- per-position profiles (appendix)
 # The un-summarized profile behind Table 1: rate_colormap(profile=True) gives, per ramp position,
 # the melanopic ratio (NaN where the colour emits ~nothing) and the photopic luminance (the weight).
@@ -847,7 +758,6 @@ FIGURES = {
     "profiles": (fig_profiles, "fig_melanopic_profiles.png"),  # appendix A
     "mean_spread": (fig_mean_spread, "fig_mean_spread.png"),  # appendix B
     "validation": (fig_validation, "s026_validation.png"),
-    "melanopic_colormaps": (fig_melanopic_colormaps, "melanopic_colormaps.png"),
 }
 
 

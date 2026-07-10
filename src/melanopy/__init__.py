@@ -7,13 +7,8 @@ measurable, scores existing maps on it, and provides a one-parameter family that
 walks the axis while holding uniformity and colourblind-safety fixed.
 """
 
+from .accent import CIRCADIA_ACCENT, CIRCADIA_ACCENT_NAMES
 from .adapters.mpl import register
-from .categorical import (
-    CATEGORICAL,
-    CATEGORICAL_DARK,
-    CATEGORICAL_LIGHT,
-    CATEGORICAL_NAMES,
-)
 from .generator import (
     EQUILUX,
     SODIUM,
@@ -36,12 +31,10 @@ __all__ = [
     "melanopic_ratio",
     "rate_colormap",
     "circadia_rating",
-    "CATEGORICAL_DARK",
-    "CATEGORICAL_LIGHT",
-    "CATEGORICAL_NAMES",
-    "CATEGORICAL",
+    "CIRCADIA_ACCENT",
+    "CIRCADIA_ACCENT_NAMES",
     "register",
     "__version__",
 ]
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"

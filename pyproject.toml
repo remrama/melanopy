@@ -52,6 +52,7 @@ dev = [
 ]
 qt = ["pyqtgraph>=0.14.0"]
 docs = [
+    "markdown-exec>=1.8.0",
     "mkdocstrings-python>=2.0.5",
     "zensical>=0.0.46",
 ]

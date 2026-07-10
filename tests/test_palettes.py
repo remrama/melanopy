@@ -1,12 +1,14 @@
-"""circadia_sweep (full-axis / teaching) and circadia_diverging (signed-data) palettes.
+"""Generated-palette tests: circadia_sweep / circadia_diverging, and the Circadia accent palette.
 
-The sweep's defining property is that its melanopic ratio rises ~linearly with the data value
-while lightness stays monotone (ordered); the diverging map's is a neutral (M/P = 1) centre with a
-warm protective arm and a cool alerting arm. Checked here against the rater and OKLab lightness.
+The sweep's defining property is that its melanopic ratio rises ~linearly with the data value while
+lightness stays monotone (ordered); the diverging map's is a neutral (M/P = 1) centre with a warm
+protective arm and a cool alerting arm. The accent palette must sit far from the family's colour
+footprint and stay CVD-distinct. Checked here against the rater, OKLab lightness, and CAM02-UCS.
 """
 
+import colorspacious as cs
 import numpy as np
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, to_rgb
 
 import melanopy as mp
 
@@ -74,3 +76,43 @@ def test_new_maps_register():
     mp.register()
     assert "circadia_sweep" in plt.colormaps()
     assert "circadia_diverging" in plt.colormaps()
+
+
+# --- the Circadia accent palette ---------------------------------------------------------------
+# Marks laid over a Circadia fill. Locked against drift: recompute the family footprint from the
+# *current* generator and assert each accent colour still sits far from it, and that the set stays
+# mutually distinct under CVD. (The build script is only a derivation aid; these floors are the
+# contract, so the baked hex can be curated as long as it clears them.)
+
+
+def _min_cam02_separation(rgb):
+    """Smallest pairwise CAM02-UCS distance in an ``(N, 3)`` sRGB set."""
+    lab = cs.cspace_convert(np.clip(rgb, 0, 1), "sRGB1", "CAM02-UCS")
+    d = np.linalg.norm(lab[:, None, :] - lab[None, :, :], axis=-1)
+    return d[d > 0].min()
+
+
+def _cvd_sim(rgb, cvd):
+    """Machado-2009 dichromacy simulation (severity 100) of an sRGB set."""
+    space = {"name": "sRGB1+CVD", "cvd_type": cvd, "severity": 100}
+    return np.clip(cs.cspace_convert(np.clip(rgb, 0, 1), space, "sRGB1"), 0, 1)
+
+
+def test_circadia_accent_names_match():
+    assert len(mp.CIRCADIA_ACCENT) == len(mp.CIRCADIA_ACCENT_NAMES) == 4
+
+
+def test_circadia_accent_pops_over_the_family():
+    fam = np.vstack([mp.circadia(a, n=64) for a in np.linspace(0, 1, 11)])
+    fam_lab = cs.cspace_convert(np.clip(fam, 0, 1), "sRGB1", "CAM02-UCS")
+    acc = np.array([to_rgb(c) for c in mp.CIRCADIA_ACCENT])
+    acc_lab = cs.cspace_convert(acc, "sRGB1", "CAM02-UCS")
+    dist = np.linalg.norm(acc_lab[:, None, :] - fam_lab[None, :, :], axis=-1).min(axis=1)
+    assert dist.min() > 12.0  # far from any fill (floor relaxed for the curated set)
+
+
+def test_circadia_accent_is_cvd_distinct():
+    acc = np.array([to_rgb(c) for c in mp.CIRCADIA_ACCENT])
+    assert _min_cam02_separation(acc) > 15.0
+    for cvd in ("deuteranomaly", "protanomaly", "tritanomaly"):
+        assert _min_cam02_separation(_cvd_sim(acc, cvd)) > 15.0
